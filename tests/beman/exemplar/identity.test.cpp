@@ -53,3 +53,131 @@ TEST(IdentityTest, check_is_transparent) {
     EXPECT_EQ(it, it_with_id);
 #endif
 }
+
+
+/*
+
+  std::expected<int, std::string> parseInt(std::string);
+  int squared(int);
+
+  expected<int, std::string> result =
+    getValue()               // std::expected<std::string, std::string>
+      | unwrap               // std::string
+      | transform(parseInt)  // std::expected<int, std::string>
+      | transform(squared)   // int
+
+
+  std::expected<int, std::string> result =
+    getValue()               // std::optional<std::string>
+      | transform(parseInt)  // std::expected<int, std::string>
+                             // std::optional<std::expected<int, std::string>>
+      | transform(squared)   // int
+                             // std::optional<int>
+      | unwrap               // std::expected<int, string>
+
+
+  std::expected<int, std::string> result =
+    getValue()
+      | transform(parseInt)
+      | transform(squared)
+      | unwrap_or(std::string{})
+
+  std::expected<int, std::string> result =
+    getValue()
+      | transform(parseInt)
+      | transform(squared)
+      | transform_error // constructs default error std::string if possible
+      | transform_error(std::nullopt -> std::string) ?
+
+  auto unwrap_as(std::optional<T> m) {
+    return m.value();
+  }
+
+  auto unwrap_error_as(const std::optional<T> &) {
+    return std::nullopt;
+  }
+
+  auto unwrap_as(std::expected<T, E> m) {
+    return m.value();
+  }
+
+  auto unwrap_error_as(std::expected<T, E> m) {
+    return m.error();
+  }
+
+  auto unwrap_as(T *m) {
+    return *m;
+  }
+
+  auto unwrap_error_as(T *m) {
+    return nullptr;
+  }
+
+  auto monad_as(std::identity_t<T>) {
+    return Monad{
+      unwrap_as([] (auto &&t) { return t.value()}),
+      unwrap_error_as([] (auto &&t) { return t.value()}),
+    };
+  }
+
+  template<typename T, typename E>
+  struct Monad<std::expected<T, E>> {
+    decltype(auto) value(auto &&exp) const noexcept {
+      return std::forward<decltype(exp)>(exp).value();
+    }
+
+    decltype(auto) error(auto &&exp) const noexcept {
+      return std::forward<decltype(exp)>(exp).error();
+    }
+  };
+
+  std::expected<int, std::string> result =
+    getValue()
+      | pure                  -> Monad<optional<int>>
+      | transform(parseInt)   -> Monad<expected<int, Error>>
+      | transform(squared)    -> Monad<expected<int, Error>>
+      | unwrap                -> expected<int, Error>
+
+  // looks douable optional to expected
+  std::expected<int, std::string> result =
+    getValue()                -> optional<int>
+      | transform(parseInt)   -> optional<expected<int, Error>>
+      | unwrap/unwrap_or      -> expected<int, Error>
+      | transform(squared)    -> expected<int, Error>
+
+  // looks douable optional to expected, unwrap_or version
+  std::expected<int, std::string> result =
+    getValue()                -> optional<int>
+      | transform(parseInt)   -> optional<expected<int, Error>>
+      | unwrap_or<Error>      -> expected<int, Error>
+      | transform(squared)    -> expected<int, Error>
+
+  None(int) -> None(expected) -> Result<T, Error> ->
+
+  // looks douable expected to optional
+  std::optional<int> result =
+    getValue()                -> expected<int, Error>
+      | transform(parseInt)   -> expected<optional<int>, Error>>
+      | unwrap/unwrap_or      -> optional<int>
+      | transform(squared)    -> optional<int>
+
+  std::optional<int> result =
+    getValueOr()            -> expected<T, E>
+      | transform(parseInt) -> optional<T -> U>
+      | transform(squared)  -> int
+      | or_else(print)      -> void(E)
+
+  T,E -> Some(U) -> U -> Some(U) or print E
+
+
+  Monad(T) -> void -> Monad(T)
+  Monad(T) -> U    -> Monad(U)
+
+  expected<vector<int>, error> result =
+    getValues()          // expected<vector<int>, std::string>
+      | unwrap           // std::vector
+      | and_then(print)  // std::vector
+      | map(divide, 10)  //
+      | and_then(print)
+ *
+*/

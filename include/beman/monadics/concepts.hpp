@@ -14,7 +14,7 @@ template<typename T>
 concept Box = requires(T &&t) {
   typename T::value_type;
   { t.has_value() } -> std::same_as<bool>;
-  { t.value() } -> std::same_as<typename T::value_type>;
+  // { t.value() } -> std::same_as<typename T::value_type>;
 };
 
 } // namespace details::_concepts
