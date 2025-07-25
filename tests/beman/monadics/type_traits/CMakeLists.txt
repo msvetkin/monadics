@@ -1,4 +1,3 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-add_subdirectory(concepts)
-add_subdirectory(type_traits)
+add_beman_test(rebind_value)

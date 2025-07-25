@@ -11,6 +11,8 @@ target_sources(
     ${beman_lib_target}
     PUBLIC
         FILE_SET HEADERS
-        FILES ../../../include/beman/monadics/concepts/decomposable.hpp
-        FILES ../../../include/beman/monadics/concepts/instance_of.hpp
+        FILES
+            ../../../include/beman/monadics/concepts/decomposable.hpp
+            ../../../include/beman/monadics/concepts/instance_of.hpp
+            ../../../include/beman/monadics/type_traits/rebind_value.hpp
 )
