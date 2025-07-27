@@ -14,5 +14,7 @@ target_sources(
         FILES
             ../../../include/beman/monadics/concepts/decomposable.hpp
             ../../../include/beman/monadics/concepts/instance_of.hpp
+            ../../../include/beman/monadics/concepts/same_template_as.hpp
+            ../../../include/beman/monadics/type_traits/decompose.hpp
             ../../../include/beman/monadics/type_traits/rebind_value.hpp
 )
