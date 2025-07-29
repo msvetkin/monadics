@@ -17,4 +17,7 @@ target_sources(
             ../../../include/beman/monadics/concepts/same_template_as.hpp
             ../../../include/beman/monadics/type_traits/decompose.hpp
             ../../../include/beman/monadics/type_traits/rebind_value.hpp
+            ../../../include/beman/monadics/type_traits/invoke_result.hpp
+            # ../../../include/beman/monadics/type_traits/box.hpp
+            ../../../include/beman/monadics/box_traits.hpp
 )

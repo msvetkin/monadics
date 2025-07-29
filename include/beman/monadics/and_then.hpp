@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-#ifndef BEMAN_MONADICS_TRANSFORM_HPP
-#define BEMAN_MONADICS_TRANSFORM_HPP
+#ifndef BEMAN_MONADICS_AND_THEN_HPP
+#define BEMAN_MONADICS_AND_THEN_HPP
 
 #include <beman/monadics/concepts/same_template_as.hpp>
 #include <beman/monadics/type_traits/invoke_result.hpp>
-#include "beman/monadics/type_traits/rebind_value.hpp"
 #include <beman/monadics/box_traits.hpp>
 
 #include <type_traits> // std::decay_t
@@ -13,14 +12,16 @@
 
 namespace beman::monadics {
 
-namespace details::_transform {
+namespace details::_and_then {
 
 template <typename Box, typename F, typename R = invoke_result_t<F, decltype(std::declval<Box>().value())>>
     requires requires {
-        requires !same_template_as<Box, R>;
-        typename rebind_value<Box, R>;
+        requires same_template_as<Box, R>;
+        // requires std::same_as<
+        // typename std::remove_cvref_t<T>::error_type,
+        // typename std::remove_cvref_t<R>::error_type>;
     }
-using transform_return = rebind_value<Box, R>;
+using and_then_return = R;
 
 struct fn {
     template <typename Fn>
@@ -28,7 +29,7 @@ struct fn {
         template <typename Box, typename A>
             requires(std::same_as<std::remove_cvref_t<A>, action>)
         [[nodiscard]] friend inline constexpr auto
-        operator|(Box&& box, A&& a) noexcept -> transform_return<decltype(box), decltype(a.fn)> {
+        operator|(Box&& box, A&& a) noexcept -> and_then_return<decltype(box), decltype(a.fn)> {
             using Traits = box_traits_for<Box>;
 
             if (!Traits::has_value(box)) {
@@ -51,10 +52,47 @@ struct fn {
     }
 };
 
-} // namespace details::_transform
+} // namespace details::_and_then
 
-inline constexpr details::_transform::fn transform{};
+inline constexpr details::_and_then::fn and_then{};
 
 } // namespace beman::monadics
 
-#endif // BEMAN_MONADICS_TRANSFORM_HPP
+/*
+
+  Box
+
+  M<T>    -> T -> transform       -> U    -> M<T> rebind U -> M<U>
+  value
+  error
+  has_value
+  rebind
+
+
+  M<T>    -> T -> and_then        -> M<U>
+  M<T>    -> T -> or_else         -> M<U>
+
+
+  M<T, E> -> E -> transform_error -> U    -> M<T, U>
+
+  // fp(box, success, fail)
+
+  auto transform = box
+    | unwrap
+    | callback
+    | lift
+
+  using U = ... value or monad
+  using BoxTraits = box_traits<Box>;
+  using NewBox = BoxTraits::rebind<T>
+
+  if (!Traits::has_value(box)) {
+    return NewBox<Value>{std::nullopt};
+  }
+
+  return NewBox<Value>{Traits::value(std::forward<Box>(box))};
+
+
+*/
+
+#endif // BEMAN_MONADICS_AND_THEN_HPP
