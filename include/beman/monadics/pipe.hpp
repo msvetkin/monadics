@@ -7,30 +7,30 @@
 
 namespace beman::monadics {
 
-template<typename CPO>
-struct pipe {
-  template<typename Callback>
-  struct Action {
-    Callback callback;
+template<auto Op>
+struct pipe_for {
+  template<typename Fn>
+  struct action {
+    Fn fn;
 
-    template<typename T>
-    [[nodiscard]] friend constexpr auto operator|(T &&t, Action &&a) noexcept
+    template<typename Box, typename A>
+        requires(std::same_as<std::remove_cvref_t<A>, action>)
+    [[nodiscard]] friend inline constexpr auto operator|(Box &&box, A &&a) noexcept
       requires requires {
-        CPO{}(std::forward<T>(t), std::declval<Callback>());
+        Op(std::forward<Box>(box), std::forward<A>(a).fn);
       }
     {
-      return CPO{}(std::forward<T>(t), std::forward<Callback>(a.callback));
+      return Op(std::forward<Box>(box), std::forward<A>(a).fn);
     }
   };
 
-  template<typename T, typename F>
-  inline static constexpr auto invocable =
-      requires { std::declval<T>() | std::declval<Action<F>>(); };
+  // template<typename T, typename F>
+  // inline static constexpr auto invocable =
+      // requires { std::declval<T>() | std::declval<Action<F>>(); };
 
-  template<typename Callback>
-  [[nodiscard]] constexpr decltype(auto) operator()(
-      Callback &&cb) const noexcept {
-    return Action<Callback>{std::forward<Callback>(cb)};
+  template<typename Fn>
+  [[nodiscard]] constexpr decltype(auto) operator()(Fn &&fn) const noexcept {
+    return action<decltype(fn)>{std::forward<Fn>(fn)};
   }
 };
 

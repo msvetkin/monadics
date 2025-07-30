@@ -5,12 +5,26 @@
 
 #include <beman/monadics/concepts/decomposable.hpp>
 
+#include <concepts> // std::same_as
+
 namespace beman::monadics {
+
+namespace details::_instance_of {
+
+template<typename T, template <typename...> class U>
+inline constexpr bool same_as = false;
+
+template<template <typename...> class T,
+         typename ... Args,
+         template <typename...> class U>
+inline constexpr bool same_as<T<Args...>, U> = std::same_as<T<Args...>, U<Args...>>;
+
+} // namespace _instance_of
 
 template <typename T, template <typename...> class U>
 concept instance_of = requires {
     requires decomposable<T>;
-    []<typename... Args>(U<Args...>*) {}(static_cast<std::remove_cvref_t<T>*>(nullptr));
+    requires details::_instance_of::same_as<std::remove_cvref_t<T>, U>;
 };
 
 } // namespace beman::monadics

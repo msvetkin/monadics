@@ -9,6 +9,8 @@
 #include <optional>
 #include <memory>
 
+#include "std.hpp"
+
 namespace beman::monadics::tests {
 
 TEST_CASE("opt-value") {

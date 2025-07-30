@@ -6,6 +6,7 @@
 #include <beman/monadics/concepts/same_template_as.hpp>
 #include <beman/monadics/type_traits/invoke_result.hpp>
 #include <beman/monadics/box_traits.hpp>
+#include <beman/monadics/pipe.hpp>
 
 #include <type_traits> // std::decay_t
 #include <utility>     // std::forward
@@ -14,7 +15,8 @@ namespace beman::monadics {
 
 namespace details::_and_then {
 
-template <typename Box, typename F, typename R = invoke_result_t<F, decltype(std::declval<Box>().value())>>
+template <typename Box, typename F, typename Traits,
+          typename R = invoke_result_t<F, decltype(Traits::value(std::declval<Box>()))>>
     requires requires {
         requires same_template_as<Box, R>;
         // requires std::same_as<
@@ -23,38 +25,30 @@ template <typename Box, typename F, typename R = invoke_result_t<F, decltype(std
     }
 using and_then_return = R;
 
-struct fn {
-    template <typename Fn>
-    struct action {
-        template <typename Box, typename A>
-            requires(std::same_as<std::remove_cvref_t<A>, action>)
-        [[nodiscard]] friend inline constexpr auto
-        operator|(Box&& box, A&& a) noexcept -> and_then_return<decltype(box), decltype(a.fn)> {
-            using Traits = box_traits_for<Box>;
+struct op_fn {
+  template<typename Box, typename Fn>
+  [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept -> and_then_return<decltype(box), decltype(fn), box_traits_for<Box>> {
+      using Traits = box_traits_for<Box>;
 
-            if (!Traits::has_value(box)) {
-                if constexpr (Traits::support_error) {
-                    return Traits::error(std::forward<Box>(box));
-                } else {
-                    return Traits::error();
-                }
-            }
+      if (!Traits::has_value(box)) {
+          if constexpr (Traits::support_error) {
+              return Traits::error(std::forward<Box>(box));
+          } else {
+              return Traits::error();
+          }
+      }
 
-            return std::invoke(std::forward<Fn>(a.fn), Traits::value(std::forward<Box>(box)));
-        }
-
-        Fn fn;
-    };
-
-    template <typename Fn>
-    [[nodiscard]] constexpr inline decltype(auto) operator()(Fn&& fn) const noexcept {
-        return action<decltype(std::forward<Fn>(fn))>{std::forward<Fn>(fn)};
-    }
+      return std::invoke(std::forward<Fn>(fn), Traits::value(std::forward<Box>(box)));
+  }
 };
+
+// inline constexpr op_fn op{};
 
 } // namespace details::_and_then
 
-inline constexpr details::_and_then::fn and_then{};
+// inline constexpr details::_and_then::fn and_then{};
+
+inline constexpr pipe_for<details::_and_then::op_fn{}> and_then{};
 
 } // namespace beman::monadics
 
