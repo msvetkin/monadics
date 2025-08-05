@@ -15,7 +15,13 @@ target_sources(
             ../../../include/beman/monadics/concepts/decomposable.hpp
             ../../../include/beman/monadics/concepts/instance_of.hpp
             ../../../include/beman/monadics/concepts/same_template_as.hpp
+            # ../../../include/beman/monadics/concepts/std/any.hpp
+            # ../../../include/beman/monadics/concepts/std/expected.hpp
+            # ../../../include/beman/monadics/concepts/std/optional.hpp
+            # ../../../include/beman/monadics/concepts/std/shared_ptr.hpp
+            # ../../../include/beman/monadics/concepts/std/weak_ptr.hpp
             ../../../include/beman/monadics/type_traits/decompose.hpp
+            ../../../include/beman/monadics/type_traits/extract_value_type.hpp
             ../../../include/beman/monadics/type_traits/rebind_value.hpp
             ../../../include/beman/monadics/type_traits/invoke_result.hpp
             # ../../../include/beman/monadics/type_traits/box.hpp

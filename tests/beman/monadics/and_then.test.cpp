@@ -32,14 +32,19 @@ TEST_CASE("opt-error") {
     STATIC_REQUIRE(traits::support_error == false);
 }
 
+
 TEST_CASE("shared-ptr-value") {
-    using T      = std::shared_ptr<int>;
+    struct Foo {
+      std::shared_ptr<int> value;
+    };
+
+    using T      = std::shared_ptr<Foo>;
     using traits = box_traits_for<T>;
-    const T box = traits::lift(10);
+    const T box = traits::lift(Foo{std::make_shared<int>(10)});
 
     // const auto box2 = box | and_then(foo | lift)
-    const auto box2 = box | and_then([](auto v) {
-        return std::make_shared<float>(v * 2.0);
+    const auto box2 = box | and_then([](auto &v) {
+        return v.value;
         // return lift(v * 2);
         // return (v * 2) | lift;
     });
@@ -49,7 +54,7 @@ TEST_CASE("shared-ptr-value") {
     //transform = lambda -> lift -> box
 
     REQUIRE(traits::has_value(box2));
-    REQUIRE(traits::value(box2) == 20.0);
+    REQUIRE(traits::value(box2) == 10);
     REQUIRE(traits::support_error == false);
 }
 

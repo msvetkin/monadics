@@ -42,8 +42,6 @@ struct op_fn {
   }
 };
 
-// inline constexpr op_fn op{};
-
 } // namespace details::_and_then
 
 // inline constexpr details::_and_then::fn and_then{};
