@@ -11,15 +11,13 @@ namespace beman::monadics {
 
 namespace details::_instance_of {
 
-template<typename T, template <typename...> class U>
+template <typename T, template <typename...> class U>
 inline constexpr bool same_as = false;
 
-template<template <typename...> class T,
-         typename ... Args,
-         template <typename...> class U>
-inline constexpr bool same_as<T<Args...>, U> = std::same_as<T<Args...>, U<Args...>>;
+template <template <typename...> class T, typename... Args, template <typename...> class U>
+inline constexpr bool same_as<T<Args...>, U> = requires { requires std::same_as<T<Args...>, U<Args...>>; };
 
-} // namespace _instance_of
+} // namespace details::_instance_of
 
 template <typename T, template <typename...> class U>
 concept instance_of = requires {

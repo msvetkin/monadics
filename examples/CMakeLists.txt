@@ -25,3 +25,6 @@ foreach(example ${ALL_EXAMPLES})
         PRIVATE beman::exemplar
     )
 endforeach()
+
+add_subdirectory(log)
+add_subdirectory(dev)

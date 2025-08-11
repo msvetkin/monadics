@@ -19,96 +19,91 @@ namespace details::_box_traits {
 template <typename T>
 concept False = false;
 
-template<typename Traits>
-struct value_type;
-
-template<has_value_type Traits>
-struct value_type<Traits> {
-  using type = typename Traits::value_type;
+template <typename Traits>
+struct value_type {
+    static_assert(False<Traits>, "not able to extract value_type");
 };
 
-template<typename Traits>
-  requires requires {
-    requires !has_value_type<Traits>;
-    typename extract_value_type_t<typename Traits::box_type>;
-    requires std::same_as<
-        extract_value_type_t<typename Traits::box_type>,
-        std::remove_cvref_t<decltype(Traits::value(std::declval<typename Traits::box_type>()))>
-    >;
-  }
+template <has_value_type Traits>
 struct value_type<Traits> {
-  using type = extract_value_type_t<typename Traits::box_type>;
+    using type = typename Traits::value_type;
 };
 
-template<typename Traits>
+template <typename Traits>
+    requires requires {
+        requires !has_value_type<Traits>;
+        typename extract_value_type_t<typename Traits::box_type>;
+        // requires std::same_as<
+        // extract_value_type_t<typename Traits::box_type>,
+        // std::remove_cvref_t<decltype(Traits::value(std::declval<typename Traits::box_type>()))>
+        // >;
+    }
+struct value_type<Traits> {
+    using type = extract_value_type_t<typename Traits::box_type>;
+};
+
+template <typename Traits>
 using value_type_t = typename value_type<Traits>::type;
 
-template<typename Traits>
+template <typename Traits>
 struct error_type;
 
-template<has_error_type Traits>
+template <has_error_type Traits>
 struct error_type<Traits> {
-  using type = typename Traits::error_type;
+    using type = typename Traits::error_type;
 };
 
-template<typename Traits>
-  requires requires {
-    requires !has_error_type<Traits>;
-    requires Traits::support_error;
-    typename extract_error_type_t<typename Traits::box_type>;
-    requires std::same_as<
-        extract_error_type_t<typename Traits::box_type>,
-        std::remove_cvref_t<decltype(Traits::error(std::declval<typename Traits::box_type>()))>
-    >;
-    { typename Traits::box_type{Traits::error(std::declval<typename Traits::box_type>())} };
-  }
+template <typename Traits>
+    requires requires {
+        requires !has_error_type<Traits>;
+        requires Traits::support_error;
+        typename extract_error_type_t<typename Traits::box_type>;
+        requires std::same_as<extract_error_type_t<typename Traits::box_type>,
+                              std::remove_cvref_t<decltype(Traits::error(std::declval<typename Traits::box_type>()))>>;
+        { typename Traits::box_type{Traits::error(std::declval<typename Traits::box_type>())} };
+    }
 struct error_type<Traits> {
-  using type = extract_error_type_t<typename Traits::box_type>;
+    using type = extract_error_type_t<typename Traits::box_type>;
 };
 
-template<typename Traits>
-  requires requires {
-    requires !has_error_type<Traits>;
-    requires !Traits::support_error;
-    requires !std::same_as<
-        void,
-        std::remove_cvref_t<decltype(Traits::error())>
-    >;
-    { typename Traits::box_type{Traits::error()} };
-  }
+template <typename Traits>
+    requires requires {
+        requires !has_error_type<Traits>;
+        requires !Traits::support_error;
+        requires !std::same_as<void, std::remove_cvref_t<decltype(Traits::error())>>;
+        { typename Traits::box_type{Traits::error()} };
+    }
 struct error_type<Traits> {
-  using type = std::remove_cvref_t<decltype(Traits::error())>;
+    using type = std::remove_cvref_t<decltype(Traits::error())>;
 };
 
-template<typename Traits>
+template <typename Traits>
 using error_type_t = typename error_type<Traits>::type;
 
-template<typename Traits>
+template <typename Traits>
 struct rebind_value2;
 
 template <typename Traits>
 concept has_rebind_value = requires {
-  typename Traits::box_type::template rebind_value<typename Traits::value_type>;
-  requires std::same_as<
-    typename Traits::box_type,
-    typename Traits::box_type::template rebind_value<typename Traits::value_type>
-  >;
+    typename Traits::box_type::template rebind_value<typename Traits::value_type>;
+    requires std::same_as<typename Traits::box_type,
+                          typename Traits::box_type::template rebind_value<typename Traits::value_type>>;
 };
 
-template<has_rebind_value Traits>
+template <has_rebind_value Traits>
 struct rebind_value2<Traits> {
-  template<typename U>
-  using type = typename Traits::box_type::template rebind_value<U>;
+    template <typename U>
+    using type = typename Traits::box_type::template rebind_value<U>;
 };
 
-template<typename Traits>
-  requires (!has_rebind_value<Traits>)
+template <typename Traits>
+    requires(!has_rebind_value<Traits>)
 struct rebind_value2<Traits> {
-  template<typename U>
-  using type = rebind_value<typename Traits::box_type, U>;
+    template <typename U>
+    using type = rebind_value<typename Traits::box_type, U>;
 };
 
-template<typename Traits, typename U>
+template <typename Traits, typename U>
 using rebind_value_t = typename rebind_value2<Traits>::template type<U>;
 
 } // namespace details::_box_traits
@@ -122,7 +117,7 @@ namespace details::_box_traits {
 
 template <typename Box, typename Traits = box_traits<Box>>
 struct build : Traits {
-    using box_type = Box;
+    using box_type                             = Box;
     inline static constexpr bool support_error = requires {
         { Traits::error(std::declval<Box>()) };
     };
@@ -130,7 +125,7 @@ struct build : Traits {
     using value_type = details::_box_traits::value_type_t<build>;
     using error_type = details::_box_traits::error_type_t<build>;
 
-    template<typename U>
+    template <typename U>
     using rebind_value = details::_box_traits::rebind_value_t<build, U>;
 
     // template<typename U>

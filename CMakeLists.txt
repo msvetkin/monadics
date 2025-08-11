@@ -31,13 +31,17 @@ option(
 )
 
 include(CTest)
+include(cmake/add_beman_library.cmake)
 
-add_subdirectory(src/beman/exemplar)
+# add_subdirectory(src/beman/exemplar)
+add_subdirectory(src/beman/monadics)
 
 if(BEMAN_EXEMPLAR_BUILD_TESTS)
-    add_subdirectory(tests/beman/exemplar)
+  include(cmake/add_beman_test.cmake)
+
+  add_subdirectory(tests/beman/monadics)
 endif()
 
 if(BEMAN_EXEMPLAR_BUILD_EXAMPLES)
-    add_subdirectory(examples)
+    # add_subdirectory(examples)
 endif()
