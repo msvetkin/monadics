@@ -4,7 +4,7 @@ find_package(Catch2 REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-set(tests monadics)
+set(tests monadics box_traits)
 
 foreach(test ${tests})
     add_executable(beman.monadics.tests.${test})
@@ -15,6 +15,6 @@ foreach(test ${tests})
     )
 
     catch_discover_tests(beman.monadics.tests.${test}
-      TEST_PREFIX "beman.monadics.tests.monadics."
+      TEST_PREFIX "beman.monadics.tests.${test}."
     )
 endforeach()
