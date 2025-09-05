@@ -2,11 +2,10 @@
 
 #include <beman/monadics/monadics.hpp>
 
-#include <gtest/gtest.h>
+#include <catch2/catch_test_macros.hpp>
 
 namespace beman::monadics::tests {
 
-TEST(MonadicsTests, sanity) {
-}
+TEST_CASE("sanity") {}
 
 } // namespace beman::monadics::tests
