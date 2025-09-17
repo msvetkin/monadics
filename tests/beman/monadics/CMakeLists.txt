@@ -14,6 +14,11 @@ foreach(test ${tests})
         PRIVATE beman::monadics Catch2::Catch2WithMain
     )
 
+    target_compile_options(
+        beman.monadics.tests.${test}
+        PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fconcepts-diagnostics-depth=10>"
+    )
+
     catch_discover_tests(beman.monadics.tests.${test}
       TEST_PREFIX "beman.monadics.tests.${test}."
     )

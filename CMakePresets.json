@@ -9,6 +9,7 @@
       "cacheVariables": {
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_COLOR_DIAGNOSTICS": true,
         "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "./infra/cmake/use-fetch-content.cmake"
       }
     },
