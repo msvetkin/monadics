@@ -3,8 +3,6 @@
 #ifndef BEMAN_MONADICS_BOX_TRAITS_HPP
 #define BEMAN_MONADICS_BOX_TRAITS_HPP
 
-#include <beman/monadics/detail/extract_value_type.hpp>
-
 #include <concepts>
 #include <type_traits>
 
@@ -20,9 +18,6 @@ concept has_specialization = requires {
     typename box_traits<T>;
     { box_traits<T>{} };
 };
-
-template <typename T>
-concept deducable_value_type = requires { typename extract_value_type_t<T>; };
 
 template <typename T, typename Traits>
 concept has_error_fn = requires {
@@ -40,7 +35,7 @@ concept has_minimal_traits = requires {
 };
 
 template <typename T, typename Traits = box_traits<T>>
-concept has_full_traits = requires {
+concept valid_specialization = requires {
     requires has_minimal_traits<T>;
     typename Traits::value_type;
     typename Traits::template rebind_value<typename Traits::value_type>;
@@ -48,22 +43,12 @@ concept has_full_traits = requires {
     typename Traits::template rebind_error<typename Traits::error_type>;
 };
 
-template <typename T, typename Traits = box_traits<T>>
-concept has_deducable_traits = requires {
-    requires has_minimal_traits<T>;
-    // requires typename Traits::value_type;
-    // requires typename Traits::template rebind_value<typename Traits::value_type>;
-    // requires typename Traits::error_type;
-    // requires typename Traits::template rebind_error<typename Traits::error_type>;
-};
-
 } // namespace detail::_box_traits
 
 template <typename T>
 concept has_box_traits = requires {
-    requires detail::_box_traits::has_minimal_traits<std::remove_cvref_t<T>>;
-    requires(detail::_box_traits::has_full_traits<std::remove_cvref_t<T>> ||
-             detail::_box_traits::has_deducable_traits<std::remove_cvref_t<T>>);
+  requires detail::_box_traits::has_specialization<std::remove_cvref_t<T>>;
+  requires detail::_box_traits::valid_specialization<std::remove_cvref_t<T>>;
 };
 
 template <has_box_traits T>

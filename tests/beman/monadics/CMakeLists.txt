@@ -4,7 +4,7 @@ find_package(Catch2 REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-set(tests monadics box_traits)
+set(tests monadics box_traits and_then)
 
 foreach(test ${tests})
     add_executable(beman.monadics.tests.${test})
