@@ -40,7 +40,11 @@ struct op_fn {
         using NewBoxTraits = box_traits_for<NewBox>;
 
         if (BoxTraits::has_value(box)) {
-            return std::forward<Fn>(fn)(BoxTraits::value(std::forward<Box>(box)));
+            if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
+              return std::forward<Fn>(fn)();
+            } else {
+              return std::forward<Fn>(fn)(BoxTraits::value(std::forward<Box>(box)));
+            }
         }
 
         if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
