@@ -34,6 +34,11 @@ struct pipe_for {
     [[nodiscard]] constexpr decltype(auto) operator()(Fn&& fn) const noexcept {
         return action<decltype(fn)>{std::forward<Fn>(fn)};
     }
+
+    // template <typename Fn>
+    // [[nodiscard]] constexpr decltype(auto) operator()() const noexcept {
+        // return action<decltype(fn)>{std::forward<Fn>(fn)};
+    // }
 };
 
 } // namespace beman::monadics::detail
