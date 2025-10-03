@@ -23,10 +23,12 @@ consteval auto invoke_result() {
 
 template <typename Fn, typename Box, typename BoxTraits>
   requires requires {
-      requires std::invocable<decltype(BoxTraits::error)>;
+    { BoxTraits::error() };
+      // requires std::invocable<decltype(BoxTraits::error)>;
       // requires std::invocable<Fn>;
   } || requires {
-      requires std::invocable<decltype(BoxTraits::error), Box>;
+    { BoxTraits::error(std::declval<Box>()) };
+      // requires std::invocable<decltype(BoxTraits::error), Box>;
       // requires std::invocable<Fn, Value>;
   }
 using invoke_result_t = decltype(invoke_result<Fn, Box, BoxTraits>())::type;
@@ -52,11 +54,12 @@ struct op_fn {
             }
         }
 
-        // if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
-        return NewBoxTraits::lift(BoxTraits::value(std::forward<Box>(box)));
-        // } else {
+        if constexpr (requires { { BoxTraits::value(std::forward<Box>(box)) } -> std::same_as<void>; } ) {
+          return NewBoxTraits::lift();
+        } else {
+          return NewBoxTraits::lift(BoxTraits::value(std::forward<Box>(box)));
             // return NewBoxTraits::lift(BoxTraits::value());
-        // }
+        }
     }
 };
 

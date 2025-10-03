@@ -4,6 +4,7 @@
 
 #include "helpers/optional-full.hpp"
 #include "helpers/shared-ptr-full.hpp"
+#include "helpers/myexpected.hpp"
 
 #include <catch2/catch_template_test_macros.hpp>
 
@@ -63,6 +64,45 @@ TEST_CASE("shared-ptr-rvalue-value") {
       });
 
   REQUIRE(static_cast<bool>(result) == true);
+}
+
+TEST_CASE("my-expected-with-value") {
+  constexpr auto result = helpers::expected<int, float>{10}
+      | or_else([] (float &&e) {
+          return  helpers::expected<int, std::string_view>{std::string_view{"ups"}};
+      });
+
+  STATIC_REQUIRE(result.has_value());
+  STATIC_REQUIRE(result.value() == 10);
+}
+
+TEST_CASE("my-expected-without-value") {
+  constexpr auto result = helpers::expected<int, double>{1.0}
+      | or_else([] (auto &&e) {
+          return  helpers::expected<int, double>{e * 10};
+      });
+
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 10.0);
+}
+
+TEST_CASE("my-expected-void-with-value") {
+  constexpr auto result = helpers::expected<void, float>{}
+      | or_else([] (float &&e) {
+          return  helpers::expected<void, std::string_view>{std::string_view{"ups"}};
+      });
+
+  STATIC_REQUIRE(result.has_value());
+}
+
+TEST_CASE("my-expected-void-without-value") {
+  constexpr auto result = helpers::expected<void, double>{10.0}
+      | or_else([] (double &&) {
+          return  helpers::expected<void, std::string_view>{std::string_view{"ups"}};
+      });
+
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == "ups");
 }
 
 } // namespace beman::monadics::tests

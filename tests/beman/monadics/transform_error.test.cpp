@@ -2,94 +2,73 @@
 
 #include "beman/monadics/detail/transform_error.hpp"
 
+#include "catch2/catch_test_macros.hpp"
 #include "helpers/optional-full.hpp"
 #include "helpers/shared-ptr-full.hpp"
+#include "helpers/myexpected.hpp"
 
 #include <catch2/catch_template_test_macros.hpp>
+#include <utility>
+
+// TODO concepts
+//  - and_thenable
+//  - or_elsable
+//  - transformable
+//  - error_transformable
+
+template<typename Box>
+concept error_transformable = requires {
+  {
+    Box{} | transform_error([] (auto &e) { return 1; })
+  };
+};
 
 namespace beman::monadics::tests {
 
-// TEST_CASE("has-box-traits") {
-    // STATIC_REQUIRE(has_box_traits<helpers::myoptional<int>>);
-// }
-
-// TEST_CASE("myoptional-with-value") {
-  // constexpr auto result = helpers::myoptional<int>{.has_value = true, .value = 10}
-      // | or_else([] (auto &&value) {
-          // return helpers::myoptional<double>{
-            // .has_value = true,
-            // .value = std::forward<decltype(value)>(value) * 2.0
-          // };
-      // });
-  // STATIC_REQUIRE(result.has_value);
-  // STATIC_REQUIRE(result.value == 20.0);
-// }
-
-// TEST_CASE("myoptional-with-error") {
-  // constexpr auto result = helpers::myoptional<int>{.has_value = false, .value = 10}
-      // | or_else([] (auto &&value) {
-          // return helpers::myoptional<double>{
-            // .has_value = true,
-            // .value = std::forward<decltype(value)>(value) * 2.0
-          // };
-      // });
-  // STATIC_REQUIRE(result.has_value == false);
-// }
-
 TEST_CASE("optional-has-box-traits") {
     STATIC_REQUIRE(has_box_traits<std::optional<int>>);
+
+    STATIC_REQUIRE(error_transformable<std::shared_ptr<int>> == false);
+    STATIC_REQUIRE(error_transformable<std::optional<int>> == false);
 }
 
-// TEST_CASE("with-value") {
-  // constexpr auto result = std::optional{10}
-      // | or_else([] () {
-          // return std::optional{2.0};
-      // });
+TEST_CASE("my-expected-with-value") {
+  constexpr auto result = helpers::expected<int, float>{10}
+      | transform_error([] (float &&) {
+          return std::string_view{"hm"};
+      });
 
-  // STATIC_REQUIRE(result.has_value());
-  // STATIC_REQUIRE(result.value() == 10);
-// }
+  STATIC_REQUIRE(result.has_value());
+  STATIC_REQUIRE(result.value() == 10);
+}
 
-// TEST_CASE("without-value") {
-  // constexpr auto result = std::optional<int>{}
-      // | or_else([] () {
-          // return std::optional{2.0};
-      // });
-  // STATIC_REQUIRE(result.has_value() == true);
-  // STATIC_REQUIRE(result.value() == 2.0);
-// }
+TEST_CASE("my-expected-without-value") {
+  constexpr auto result = helpers::expected<int, double>{1.0}
+      | transform_error([] (auto &&e) {
+          return  e + 5.0;
+      });
 
-// TEST_CASE("shared-ptr-with-value") {
-  // auto ptr = std::make_shared<int>(10);
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 6.0);
+}
 
-  // const auto result = ptr
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
+TEST_CASE("my-expected-void-with-value") {
+  constexpr auto result = helpers::expected<void, float>{}
+      | transform_error([] (float &&e) {
+          return  e + 10;
+      });
 
-  // REQUIRE(result);
-  // REQUIRE(*result == 20.0);
-// }
+  STATIC_REQUIRE(result.has_value());
+}
 
-// TEST_CASE("shared-ptr-without-value") {
-  // std::shared_ptr<int> ptr;
+TEST_CASE("my-expected-void-without-value") {
+  constexpr auto result = helpers::expected<void, double>{10.0}
+      | transform_error([] (double &&e) {
+          return  e + 55.5;
+      });
 
-  // const auto result = ptr
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
-
-  // REQUIRE(static_cast<bool>(result) == false);
-// }
-
-// TEST_CASE("shared-ptr-rvalue-value") {
-
-  // const auto result = std::make_shared<int>(10)
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
-
-  // REQUIRE(static_cast<bool>(result) == true);
-// }
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 65.5);
+}
 
 } // namespace beman::monadics::tests

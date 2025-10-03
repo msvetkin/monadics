@@ -4,55 +4,57 @@
 #define BEMAN_MONADICS_DETAIL_TRANSFORM_ERROR_HPP
 
 #include "beman/monadics/box_traits.hpp"
-#include <beman/monadics/detail/and_then.hpp>
+#include <beman/monadics/detail/or_else.hpp>
 #include <type_traits>
 #include <utility>
 
 namespace beman::monadics {
 
-namespace detail::_transform {
+namespace detail::_transform_error {
 
-template <typename Fn, typename Value>
+template <typename Fn, typename Box, typename BoxTraits>
 consteval auto invoke_result() {
-    if constexpr (std::is_void_v<Value>) {
-        return std::type_identity<std::invoke_result_t<Fn>>{};
+
+    if constexpr (requires { BoxTraits::error(std::declval<Box>()); }) {
+        return std::type_identity<std::invoke_result_t<Fn, decltype(BoxTraits::error(std::declval<Box>()))>>{};
     } else {
-        return std::type_identity<std::invoke_result_t<Fn, Value>>{};
+        return std::type_identity<std::invoke_result_t<Fn>>{};
     }
 }
 
-template <typename Fn, typename Value>
-  requires requires {
-      requires std::is_void_v<Value>;
-      requires std::invocable<Fn>;
+template <typename Fn, typename Box, typename BoxTraits>
+requires requires {
+    { BoxTraits::error() };
+      // requires std::invocable<decltype(BoxTraits::error)>;
+      // requires std::invocable<Fn>;
   } || requires {
-      requires std::invocable<Fn, Value>;
+    { BoxTraits::error(std::declval<Box>()) };
+      // requires std::invocable<decltype(BoxTraits::error), Box>;
+      // requires std::invocable<Fn, Value>;
   }
-using invoke_result_t = decltype(invoke_result<Fn, Value>())::type;
+using invoke_result_t = decltype(invoke_result<Fn, Box, BoxTraits>())::type;
 
 struct op_fn {
     template <typename Box, typename Fn>
     [[nodiscard]] inline constexpr auto operator()(Box &&box, Fn &&fn) const noexcept {
         using BoxTraits = box_traits_for<Box>;
-        using NewValue = invoke_result_t<
+        using NewError = invoke_result_t<
           decltype(std::forward<Fn>(fn)),
-          decltype(BoxTraits::value(std::forward<Box>(box)))
+          decltype(std::forward<Box>(box)),
+          BoxTraits
         >;
-        using NewBoxTraits = box_traits_for<typename BoxTraits::template rebind_value<NewValue>>;
+        using NewBoxTraits = box_traits_for<typename BoxTraits::template rebind_error<NewError>>;
 
-        return std::forward<Box>(box) | or_else([&fn] (auto &&...v) {
-          if constexpr (sizeof...(v) == 1) {
-            return NewBoxTraits::lift(fn(std::forward<decltype(v)>(v)...));
-          } else {
-            return NewBoxTraits::lift(fn());
-          }
+        // transform_error does not make sense if you don't have error
+        return std::forward<Box>(box) | or_else([&fn] (auto &&v) {
+          return NewBoxTraits::lift(fn(std::forward<decltype(v)>(v)));
         });
     }
 };
 
-} // namespace detail::_transform
+} // namespace detail::_transform_error
 
-inline constexpr detail::pipe_for<detail::_transform::op_fn> transform{};
+inline constexpr detail::pipe_for<detail::_transform_error::op_fn> transform_error{};
 
 } // namespace beman::monadics
 
