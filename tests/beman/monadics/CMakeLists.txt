@@ -27,6 +27,8 @@ include(Catch)
 set(tests
   and_then/optional
   and_then/shared_ptr
+  transform/optional
+  transform/shared_ptr
 )
 
 foreach(test_path ${tests})
