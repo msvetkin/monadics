@@ -14,102 +14,90 @@ TEST_CASE("has-box-traits") {
     STATIC_REQUIRE(has_box_traits<helpers::expected<void, int>>);
 }
 
-TEST_CASE("with-void-value") {
+TEST_CASE("with-void-value-return-non-void-with-value") {
   constexpr auto result = helpers::expected<void, int>{}
       | and_then([] () {
-          return 2.0;
+          return helpers::expected<double, int>(2.0);
       });
 
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<double, int>>);
   STATIC_REQUIRE(result.has_value());
   STATIC_REQUIRE(result.value() == 2.0);
 }
 
-// TEST_CASE("without-value") {
-  // constexpr auto result = std::optional<int>{}
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
-  // STATIC_REQUIRE(result.has_value() == false);
-// }
+TEST_CASE("with-void-value-return-non-void-with-error") {
+  constexpr auto result = helpers::expected<void, int>{}
+      | and_then([] () {
+          return helpers::expected<double, int>(2);
+      });
 
-// TEST_CASE("shared-ptr-with-value") {
-  // auto ptr = std::make_shared<int>(10);
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<double, int>>);
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 2);
+}
 
-  // const auto result = ptr
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
+TEST_CASE("with-void-value-return-void-with-value") {
+  constexpr auto result = helpers::expected<void, int>{}
+      | and_then([] () -> helpers::expected<void, int> {
+          return {};
+      });
 
-  // REQUIRE(result);
-  // REQUIRE(*result == 20.0);
-// }
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<void, int>>);
+  STATIC_REQUIRE(result.has_value());
+}
 
-// TEST_CASE("shared-ptr-without-value") {
-  // std::shared_ptr<int> ptr;
+TEST_CASE("with-void-value-return-void-with-error") {
+  constexpr auto result = helpers::expected<void, int>{}
+      | and_then([] () -> helpers::expected<void, int> {
+          return {5};
+      });
 
-  // const auto result = ptr
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<void, int>>);
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 5);
+}
 
-  // REQUIRE(static_cast<bool>(result) == false);
-// }
+TEST_CASE("with-value-return-non-void-with-value") {
+  constexpr auto result = helpers::expected<int, double>{10}
+      | and_then([] (auto) -> helpers::expected<std::string_view, double> {
+          return std::string_view{"some"};
+      });
 
-// TEST_CASE("shared-ptr-rvalue-value") {
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<std::string_view, double>>);
+  STATIC_REQUIRE(result.has_value());
+  STATIC_REQUIRE(result.value() == "some");
+}
 
-  // const auto result = std::make_shared<int>(10)
-      // | transform([] (auto &&value) {
-          // return value * 2.0;
-      // });
+TEST_CASE("with-value-return-non-void-with-error") {
+  constexpr auto result = helpers::expected<int, double>{10}
+      | and_then([] (auto &&v) -> helpers::expected<std::string_view, double> {
+          return v * 2.0;
+      });
 
-  // REQUIRE(static_cast<bool>(result) == true);
-// }
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<std::string_view, double>>);
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 20.0);
+}
 
-// struct Item {
-  // std::string name;
-  // virtual ~Item() {};
-// };
+TEST_CASE("with-value-return-void-with-value") {
+  constexpr auto result = helpers::expected<int, double>{10}
+      | and_then([] (auto) -> helpers::expected<void, double> {
+          return {};
+      });
 
-// struct Widget : Item {};
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<void, double>>);
+  STATIC_REQUIRE(result.has_value());
+}
 
-// struct Some {
-  // std::shared_ptr<Item> parent;
-// };
+TEST_CASE("with-value-return-void-with-error") {
+  constexpr auto result = helpers::expected<int, double>{10}
+      | and_then([] (auto) -> helpers::expected<void, double> {
+          return {5.0};
+      });
 
-// TEST_CASE("shared-ptr-parent-child") {
-  // const auto parent = [] {
-    // auto some = std::make_shared<Some>();
-    // some->parent = std::make_shared<Item>();
-    // some->parent->name = "test";
-
-    // return std::move(some) | and_then([] (auto &&some) {
-        // return some.parent;
-    // });
-  // }();
-
-  // REQUIRE(parent);
-  // REQUIRE(parent->name == "test");
-// }
-
-
-// TEST_CASE("smart-ptr-rvalue-value") {
-  // constexpr auto result = [] () {
-    // smart_ptr<int> ptr{10};
-    // const auto value = ptr.value();
-    // return value;
-  // }();
-
-  // STATIC_REQUIRE(result == 10);
-  // // constexpr smart_ptr<int> ptr{10};
-
-  // // constexpr auto result2 = [] () {
-    // // smart_ptr<int> ptr{10};
-    // // return ptr | transform([] (auto &&value) {
-      // // return value *2.0;
-    // // });
-  // // }();
-
-  // // STATIC_REQUIRE(result2.has_value());
-// }
+  STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<void, double>>);
+  STATIC_REQUIRE(result.has_value() == false);
+  STATIC_REQUIRE(result.error() == 5.0);
+}
 
 } // namespace beman::monadics::tests

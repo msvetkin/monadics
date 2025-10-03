@@ -25,6 +25,7 @@ include(Catch)
 # endforeach()
 
 set(tests
+  and_then/expected
   and_then/optional
   and_then/shared_ptr
   transform/optional
