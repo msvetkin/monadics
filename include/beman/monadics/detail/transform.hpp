@@ -35,28 +35,7 @@ template<typename Fn, typename NewBoxTraits>
 struct LiftedFn {
   Fn fn;
 
-  // [[nodiscard]] inline constexpr decltype(auto) operator()() const noexcept
-    // requires (std::invocable<Fn> && !std::is_void_v<typename NewBoxTraits::value_type>)
-  // {
-      // return NewBoxTraits::lift(std::forward<Fn>(fn)());
-  // }
-
-  // [[nodiscard]] inline constexpr decltype(auto) operator()() const noexcept
-    // requires (std::invocable<Fn> && std::is_void_v<typename NewBoxTraits::value_type>)
-  // {
-      // std::forward<Fn>(fn)();
-      // return NewBoxTraits::lift();
-  // }
-
-  // template<typename T>
-  // [[nodiscard]] inline constexpr decltype(auto) operator()(T &&t) const noexcept
-    // requires std::invocable<Fn, decltype(t)>
-  // {
-      // return NewBoxTraits::lift(std::forward<Fn>(fn)(std::forward<T>(t)));
-  // }
-  //
   [[nodiscard]] inline constexpr decltype(auto) operator()(auto &&...v) const noexcept
-    // requires std::invocable<Fn, decltype(v)...>
   {
       if constexpr (std::is_void_v<typename NewBoxTraits::value_type>) {
         std::forward<Fn>(fn)(std::forward<decltype(v)>(v)...);
