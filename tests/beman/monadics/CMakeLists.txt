@@ -28,6 +28,7 @@ set(tests
   and_then/expected
   and_then/optional
   and_then/shared_ptr
+  transform/expected
   transform/optional
   transform/shared_ptr
 )

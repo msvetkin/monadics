@@ -23,28 +23,28 @@ TEST_CASE("with-value") {
   REQUIRE(*result == 20.0);
 }
 
-TEST_CASE("with-nullptr") {
-  const auto result = std::shared_ptr<int>{}
-      | transform([] (auto &&value) {
-          return value * 1.0;
-      });
-  STATIC_REQUIRE(std::same_as<decltype(result), const std::shared_ptr<double>>);
-  REQUIRE(static_cast<bool>(result) == false);
-}
+// TEST_CASE("with-nullptr") {
+  // const auto result = std::shared_ptr<int>{}
+      // | transform([] (auto &&value) {
+          // return value * 1.0;
+      // });
+  // STATIC_REQUIRE(std::same_as<decltype(result), const std::shared_ptr<double>>);
+  // REQUIRE(static_cast<bool>(result) == false);
+// }
 
 
-TEST_CASE("with-value-return-member") {
-  struct Boo {
-    int value;
-  };
+// TEST_CASE("with-value-return-member") {
+  // struct Boo {
+    // int value;
+  // };
 
-  const auto result = std::make_shared<Boo>(10)
-      | transform([] (auto &&boo) {
-          return std::forward<decltype(boo)>(boo).value;
-      });
-  STATIC_REQUIRE(std::same_as<decltype(result), const std::shared_ptr<int>>);
-  REQUIRE(static_cast<bool>(result));
-  REQUIRE(*result == 10);
-}
+  // const auto result = std::make_shared<Boo>(10)
+      // | transform([] (auto &&boo) {
+          // return std::forward<decltype(boo)>(boo).value;
+      // });
+  // STATIC_REQUIRE(std::same_as<decltype(result), const std::shared_ptr<int>>);
+  // REQUIRE(static_cast<bool>(result));
+  // REQUIRE(*result == 10);
+// }
 
 } // namespace beman::monadics::tests

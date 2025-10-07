@@ -25,6 +25,7 @@ template <typename Fn, typename Value>
       requires std::is_void_v<Value>;
       requires std::invocable<Fn>;
   } || requires {
+      requires !std::is_void_v<Value>;
       requires std::invocable<Fn, Value>;
   }
 using invoke_result_t = decltype(invoke_result<Fn, Value>())::type;
