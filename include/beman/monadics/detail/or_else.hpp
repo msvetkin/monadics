@@ -44,6 +44,7 @@ struct op_fn {
         >;
         using NewBoxTraits = box_traits_for<NewBox>;
 
+        // if (!std::invoke(&BoxTraits::has_value, box)) {
         if (!BoxTraits::has_value(box)) {
 
             if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {

@@ -29,7 +29,7 @@ concept has_error_fn = requires {
 template <typename T>
 concept has_minimal_traits = requires {
     requires detail::_box_traits::has_specialization<T>;
-    { box_traits<T>::has_value(std::declval<T>()) } noexcept -> std::same_as<bool>;
+    // { box_traits<T>::has_value(std::declval<T>()) } noexcept -> std::same_as<bool>;
     { box_traits<T>::value(std::declval<T>()) } noexcept -> std::convertible_to<typename box_traits<T>::value_type>;
     requires has_error_fn<T, box_traits<T>>;
 };

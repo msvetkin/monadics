@@ -5,7 +5,9 @@
 
 #include "beman/monadics/box_traits.hpp"
 #include <beman/monadics/detail/pipe.hpp>
+
 #include <type_traits>
+#include <functional>
 
 namespace beman::monadics {
 
@@ -40,6 +42,7 @@ struct op_fn {
         >;
         using NewBoxTraits = box_traits_for<NewBox>;
 
+        // if (std::invoke(BoxTraits::has_value, box)) {
         if (BoxTraits::has_value(box)) {
             if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
               return std::forward<Fn>(fn)();

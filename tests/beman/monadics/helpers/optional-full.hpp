@@ -18,7 +18,9 @@ struct beman::monadics::box_traits<std::optional<T>> {
     template <typename>
     using rebind_error = std::optional<T>;
 
-    [[nodiscard]] inline static constexpr bool has_value(const auto& box) noexcept { return box.has_value(); }
+    // using has_value_t = bool (std::optional<T>::*)() const noexcept;
+    // inline static constexpr auto has_value = static_cast<has_value_t>(&std::optional<T>::operator bool);
+    [[nodiscard]] inline static constexpr bool has_value(const std::optional<T>& box) noexcept { return box.has_value(); }
 
     [[nodiscard]] inline static constexpr decltype(auto) value(auto&& box) noexcept {
         return std::forward<decltype(box)>(box).value();
