@@ -35,7 +35,9 @@ set(tests
   or_else/shared_ptr
   transform/expected
   transform/optional
+  # transform/raw_ptr
   transform/shared_ptr
+  transform_error/expected
 )
 
 foreach(test_path ${tests})
