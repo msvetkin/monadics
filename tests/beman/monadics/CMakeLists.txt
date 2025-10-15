@@ -29,6 +29,10 @@ set(tests
   and_then/optional
   and_then/shared_ptr
   and_then/raw_ptr
+  or_else/expected
+  or_else/optional
+  or_else/raw_ptr
+  or_else/shared_ptr
   transform/expected
   transform/optional
   transform/shared_ptr
