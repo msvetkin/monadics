@@ -29,11 +29,11 @@ struct beman::monadics::box_traits<std::optional<T>> {
     [[nodiscard]] inline static constexpr auto error() noexcept { return std::nullopt; }
 
     [[nodiscard]] inline static constexpr std::optional<T> lift(auto &&value) noexcept {
-      if constexpr (std::same_as<std::remove_cvref_t<decltype(value)>, std::nullopt_t>) {
-          return {};
-      } else {
-          return {std::forward<decltype(value)>(value)};
-      }
+        return {std::forward<decltype(value)>(value)};
+    }
+
+    [[nodiscard]] inline static constexpr std::optional<T> lift_error() noexcept {
+        return {};
     }
 };
 

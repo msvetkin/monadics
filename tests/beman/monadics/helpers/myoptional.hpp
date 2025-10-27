@@ -36,12 +36,12 @@ struct beman::monadics::box_traits<helpers::myoptional<T>> {
 
     [[nodiscard]] inline static constexpr helpers::none error() noexcept { return {}; }
 
-    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift(auto &&value) noexcept {
-      if constexpr (std::same_as<std::remove_cvref_t<decltype(value)>, error_type>) {
-          return {.has_value = false};
-      } else {
-          return {.has_value = true, .value = std::forward<decltype(value)>(value)};
-      }
+    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift(auto &&v) noexcept {
+      return {.has_value = true, .value = std::forward<decltype(value)>(value)};
+    }
+
+    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift_error() noexcept {
+      return {};
     }
 };
 

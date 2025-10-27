@@ -52,9 +52,9 @@ struct op_fn {
         }
 
         if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
-            return NewBoxTraits::lift(BoxTraits::error(std::forward<Box>(box)));
+            return NewBoxTraits::lift_error(BoxTraits::error(std::forward<Box>(box)));
         } else {
-            return NewBoxTraits::lift(BoxTraits::error());
+            return NewBoxTraits::lift_error();
         }
     }
 };

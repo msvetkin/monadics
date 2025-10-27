@@ -28,13 +28,12 @@ struct beman::monadics::box_traits<std::shared_ptr<T>> {
 
     [[nodiscard]] inline static constexpr auto error() noexcept { return nullptr; }
 
-    // lift
     [[nodiscard]] inline static constexpr std::shared_ptr<T> lift(auto &&value) noexcept {
-      if constexpr (std::same_as<std::remove_cvref_t<decltype(value)>, std::nullptr_t>) {
-          return {};
-      } else {
-          return std::make_shared<T>(std::forward<decltype(value)>(value));
-      }
+        return std::make_shared<T>(std::forward<decltype(value)>(value));
+    }
+
+    [[nodiscard]] inline static constexpr std::shared_ptr<T> lift_error() noexcept {
+        return {};
     }
 };
 

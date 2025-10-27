@@ -30,6 +30,10 @@ struct beman::monadics::box_traits<T*> {
     [[nodiscard]] inline static constexpr decltype(auto) lift(auto) noexcept {
       return static_cast<T *>(nullptr);
     }
+
+    [[nodiscard]] inline static constexpr decltype(auto) lift_error() noexcept {
+      return static_cast<T *>(nullptr);
+    }
 };
 
 /*

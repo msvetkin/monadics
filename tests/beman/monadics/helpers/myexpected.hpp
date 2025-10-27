@@ -143,16 +143,16 @@ struct beman::monadics::box_traits<helpers::expected<T, E>> {
 
       if constexpr (sizeof...(value) == 1) {
         return [] (auto &&v) {
-          // if constexpr (std::same_as<std::remove_cvref_t<decltype(v)>, error_type>) {
-              // return std::forward<decltype(v)>(v);
-          // } else {
-              return std::forward<decltype(v)>(v);
-          // }
+          return std::forward<decltype(v)>(v);
         }(std::forward<decltype(value)>(value)...);
       } else {
         return {};
       }
 
+    }
+
+    [[nodiscard]] inline static constexpr helpers::expected<T, E> lift_error(auto &&e) noexcept {
+        return std::forward<decltype(e)>(e);
     }
 };
 
