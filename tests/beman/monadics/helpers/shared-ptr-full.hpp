@@ -39,6 +39,30 @@ struct beman::monadics::box_traits<std::shared_ptr<T>> {
 };
 
 /*
+template <is_instance_of<std::shared_ptr> Box>
+struct beman::monadics::box_traits<Box> {
+    [[nodiscard]] inline static constexpr bool has_value(const Box& box) noexcept {
+      return static_cast<bool>(box);
+    }
+
+    [[nodiscard]] inline static constexpr decltype(auto) value(Box&& box) noexcept {
+        return *std::forward<decltype(box)>(box);
+    }
+
+    [[nodiscard]] inline static constexpr Box lift(auto &&v) noexcept {
+      return std::make_shared<typename Box::element_type>(std::forward<V>(v));
+    }
+
+    [[nodiscard]] inline static constexpr auto error() noexcept { return nullptr; }
+};
+error_type is deduced from error fn if error has 0 args.
+value_type is deduced as first template argument.
+rebind_error is deduced as same type if error fn has 0 args.
+rebind_value by default just change first args.
+lift_error does not exist, then ctor is used with error().
+*/
+
+/*
 template <typename T>
 struct beman::monadics::box_traits<std::shared_ptr<T>> {
     using value_type = T;
