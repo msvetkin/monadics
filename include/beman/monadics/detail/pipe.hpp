@@ -3,6 +3,7 @@
 #ifndef BEMAN_MONADICS_DETAIL_PIPE_HPP
 #define BEMAN_MONADICS_DETAIL_PIPE_HPP
 
+#include <type_traits>
 #include <utility>
 
 namespace beman::monadics::detail {
@@ -16,17 +17,20 @@ struct pipe_for {
         Fn fn;
 
         template <typename Box>
-        [[nodiscard]] inline constexpr decltype(auto) operator()(Box&& box) noexcept
-        {
+        [[nodiscard]] inline constexpr decltype(auto) operator()(Box&& box) noexcept {
+            // static_assert(std::same_as<decltype(box), Boo*&&>);
             return cpo(std::forward<Box>(box), std::forward<Fn>(fn));
         }
 
         template <typename Box, typename A>
             requires(std::same_as<std::remove_cvref_t<A>, action>)
-        [[nodiscard]] friend inline constexpr auto operator|(Box&& box, A&& a) noexcept
-        {
-
+        [[nodiscard]] friend inline constexpr decltype(auto) operator|(Box&& box, A&& a) noexcept {
+            // if constexpr (std::is_pointer_v<std::remove_cvref_t<Box>>) {
+            // return std::forward<A>(a)(box);
+            // } else {
             return std::forward<A>(a)(std::forward<Box>(box));
+            // }
+            // static_assert(std::same_as<decltype(box), Boo*&&>);
         }
     };
 
@@ -37,7 +41,7 @@ struct pipe_for {
 
     // template <typename Fn>
     // [[nodiscard]] constexpr decltype(auto) operator()() const noexcept {
-        // return action<decltype(fn)>{std::forward<Fn>(fn)};
+    // return action<decltype(fn)>{std::forward<Fn>(fn)};
     // }
 };
 

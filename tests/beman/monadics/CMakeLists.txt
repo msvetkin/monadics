@@ -7,37 +7,38 @@ include(Catch)
 # set(tests monadics box_traits and_then and_then.optional transform or_else transform_error)
 
 # foreach(test ${tests})
-    # add_executable(beman.monadics.tests.${test})
-    # target_sources(beman.monadics.tests.${test} PRIVATE ${test}.test.cpp)
-    # target_link_libraries(
-        # beman.monadics.tests.${test}
-        # PRIVATE beman::monadics Catch2::Catch2WithMain
-    # )
+# add_executable(beman.monadics.tests.${test})
+# target_sources(beman.monadics.tests.${test} PRIVATE ${test}.test.cpp)
+# target_link_libraries(
+# beman.monadics.tests.${test}
+# PRIVATE beman::monadics Catch2::Catch2WithMain
+# )
 
-    # target_compile_options(
-        # beman.monadics.tests.${test}
-        # PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fconcepts-diagnostics-depth=10>"
-    # )
+# target_compile_options(
+# beman.monadics.tests.${test}
+# PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fconcepts-diagnostics-depth=10>"
+# )
 
-    # catch_discover_tests(beman.monadics.tests.${test}
-      # TEST_PREFIX "beman.monadics.tests.${test}."
-    # )
+# catch_discover_tests(beman.monadics.tests.${test}
+# TEST_PREFIX "beman.monadics.tests.${test}."
+# )
 # endforeach()
 
 set(tests
-  and_then/expected
-  and_then/optional
-  and_then/shared_ptr
-  and_then/raw_ptr
-  or_else/expected
-  or_else/optional
-  or_else/raw_ptr
-  or_else/shared_ptr
-  transform/expected
-  transform/optional
-  # transform/raw_ptr
-  transform/shared_ptr
-  transform_error/expected
+    and_then/expected
+    and_then/optional
+    and_then/shared_ptr
+    and_then/shared_ptr-min
+    and_then/raw_ptr
+    or_else/expected
+    or_else/optional
+    or_else/raw_ptr
+    or_else/shared_ptr
+    transform/expected
+    transform/optional
+    # transform/raw_ptr
+    transform/shared_ptr
+    transform_error/expected
 )
 
 foreach(test_path ${tests})
@@ -49,12 +50,11 @@ foreach(test_path ${tests})
 
     add_executable(${test_target})
     target_sources(${test_target} PRIVATE ${test_path}.test.cpp)
-    target_link_libraries(${test_target}
+    target_link_libraries(
+        ${test_target}
         PRIVATE beman::monadics Catch2::Catch2WithMain
     )
-    target_include_directories(${test_target}
-        PRIVATE ${CMAKE_CURRENT_LIST_DIR}
-    )
+    target_include_directories(${test_target} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
     target_compile_options(
         ${test_target}
         PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fconcepts-diagnostics-depth=10>"
