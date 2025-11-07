@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-#ifndef BEMAN_MONADICS_HELPERS_RAW_PTR_FULL_HPP
-#define BEMAN_MONADICS_HELPERS_RAW_PTR_FULL_HPP
+#ifndef BEMAN_MONADICS_RAW_PTR_TRAIT_HPP
+#define BEMAN_MONADICS_RAW_PTR_TRAIT_HPP
 
+#define BEMAN_MONADICS_BOX_TRAITS_BUILDER 1
 #include <beman/monadics/box_traits.hpp>
+
+#include <type_traits>
 
 template <typename Box>
     requires std::is_pointer_v<Box>
@@ -27,4 +30,4 @@ struct beman::monadics::box_traits<Box> {
     [[nodiscard]] inline static constexpr Box lift_error() noexcept { return nullptr; }
 };
 
-#endif // BEMAN_MONADICS_HELPERS_RAW_PTR_FULL_HPP
+#endif // BEMAN_MONADICS_RAW_PTR_TRAIT_HPP

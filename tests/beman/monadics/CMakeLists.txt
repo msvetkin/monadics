@@ -64,3 +64,45 @@ foreach(test_path ${tests})
       TEST_PREFIX "${test_target}."
     )
 endforeach()
+
+set(tests optional raw_ptr shared_ptr expected)
+
+foreach(test_dir ${tests})
+    set(test_set
+        and_then
+        or_else
+        trait
+        transform
+        transform_error
+    )
+
+    set(test_prefix "beman.monadics.tests.${test_dir}")
+    add_custom_target(${test_prefix})
+
+    foreach(test_name ${test_set})
+        set(test_target "${test_prefix}.${test_name}")
+        add_executable(${test_target})
+        add_dependencies(${test_prefix} ${test_target})
+
+        target_sources(
+            ${test_target}
+            PRIVATE "${test_dir}/${test_name}.test.cpp"
+        )
+        target_link_libraries(
+            ${test_target}
+            PRIVATE beman::monadics Catch2::Catch2WithMain
+        )
+        target_include_directories(
+            ${test_target}
+            PRIVATE ${CMAKE_CURRENT_LIST_DIR}/${test_name}
+        )
+        target_compile_options(
+            ${test_target}
+            PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fconcepts-diagnostics-depth=10>"
+        )
+
+        catch_discover_tests(${test_target}
+          TEST_PREFIX "${test_target}."
+        )
+    endforeach()
+endforeach()

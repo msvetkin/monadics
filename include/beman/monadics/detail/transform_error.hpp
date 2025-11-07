@@ -23,32 +23,27 @@ consteval auto invoke_result() {
 }
 
 template <typename Fn, typename Box, typename BoxTraits>
-requires requires {
-    { BoxTraits::error() };
-      // requires std::invocable<decltype(BoxTraits::error)>;
-      // requires std::invocable<Fn>;
-  } || requires {
-    { BoxTraits::error(std::declval<Box>()) };
-      // requires std::invocable<decltype(BoxTraits::error), Box>;
-      // requires std::invocable<Fn, Value>;
-  }
+    requires requires {
+        { BoxTraits::error() };
+        // requires std::invocable<decltype(BoxTraits::error)>;
+        // requires std::invocable<Fn>;
+    } || requires {
+        { BoxTraits::error(std::declval<Box>()) };
+        // requires std::invocable<decltype(BoxTraits::error), Box>;
+        // requires std::invocable<Fn, Value>;
+    }
 using invoke_result_t = decltype(invoke_result<Fn, Box, BoxTraits>())::type;
 
 struct op_fn {
     template <typename Box, typename Fn>
-    [[nodiscard]] inline constexpr auto operator()(Box &&box, Fn &&fn) const noexcept {
+    [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept {
         using BoxTraits = box_traits_for<Box>;
-        using NewError = invoke_result_t<
-          decltype(std::forward<Fn>(fn)),
-          decltype(std::forward<Box>(box)),
-          BoxTraits
-        >;
+        using NewError  = invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(std::forward<Box>(box)), BoxTraits>;
         using NewBoxTraits = box_traits_for<typename BoxTraits::template rebind_error<NewError>>;
 
         // transform_error does not make sense if you don't have error
-        return std::forward<Box>(box) | or_else([&fn] (auto &&v) {
-          return NewBoxTraits::lift(fn(std::forward<decltype(v)>(v)));
-        });
+        return std::forward<Box>(box) |
+               or_else([&fn](auto&& v) { return NewBoxTraits::lift_error(fn(std::forward<decltype(v)>(v))); });
     }
 };
 

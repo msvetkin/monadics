@@ -126,33 +126,12 @@ template <typename Traits, typename Box>
 consteval auto getValue() noexcept {
     if constexpr (requires { std::declval<Box>().value(); }) {
         return [](auto&& b) { return std::forward<decltype(b)>(b).value(); };
-        // } else if constexpr (requires { *std::declval<Box>(); }) {
-        // return [] (auto &&b) {
-        // return *std::forward<decltype(b)>(b);
-        // };
     } else {
-        // return &Traits::value;
-        // clang????
         return [](auto&& b) -> decltype(Traits::value(std::forward<decltype(b)>(b))) {
             return Traits::value(std::forward<decltype(b)>(b));
         };
     }
 };
-
-// template <typename Traits, typename Box>
-// concept hasValueFn = requires (Box box) {
-// { Traits::value(box) };
-// };
-
-// template <typename Traits, typename Box>
-// struct GetValue {
-
-// [[nodiscard]] constexpr decltype(auto) operator()() const noexcept
-// requires ()
-// {
-
-// }
-// };
 
 template <typename Traits, typename Box>
 consteval auto getError() noexcept {
@@ -178,8 +157,8 @@ consteval auto hasValue() noexcept {
     }
 };
 
-template <typename Traits, typename Box>
-struct Builder : Traits {
+template <typename Box, typename Traits = box_traits<Box>>
+struct TraitsFor {
     using box_type   = Box;
     using value_type = ValueType<Traits, Box>;
     using error_type = ErrorType<Traits, Box>;
@@ -190,18 +169,8 @@ struct Builder : Traits {
     template <typename E>
     using rebind_error = RebindError<Traits, Box, E>;
 
-    inline static constexpr auto value = getValue<Traits, Box>();
-
-    // template <typename B = Box>
-    // requires (!hasValueFn<Traits, B>)
-    // [[nodiscard]] static constexpr decltype(auto) value(B &&box) noexcept {
-    // return std::forward<decltype(box)>(box).value();
-    // };
-
-    // using Traits::value;
-
-    inline static constexpr auto error = getError<Traits, Box>();
-
+    inline static constexpr auto value     = getValue<Traits, Box>();
+    inline static constexpr auto error     = getError<Traits, Box>();
     inline static constexpr auto has_value = hasValue<Traits, Box>();
 
     inline static constexpr auto lift       = liftValue<Traits, Box, value_type>();
@@ -213,8 +182,8 @@ concept has_specialization = requires {
     typename box_traits<T>;
     { box_traits<T>{} };
 } || requires {
-    typename Builder<box_traits<std::remove_cvref_t<T>>, std::remove_cvref_t<T>>;
-    { Builder<box_traits<std::remove_cvref_t<T>>, std::remove_cvref_t<T>>{} };
+    typename TraitsFor<std::remove_cvref_t<T>>;
+    { TraitsFor<std::remove_cvref_t<T>>{} };
 };
 
 template <typename T, typename Traits>
@@ -272,13 +241,9 @@ template <typename T>
 concept has_box_traits2 = requires {
     typename box_traits<T>;
     { box_traits<T>{} };
-    typename detail::_box_traits::Builder<box_traits<std::remove_cvref_t<T>>, std::remove_cvref_t<T>>;
-    { detail::_box_traits::Builder<box_traits<std::remove_cvref_t<T>>, std::remove_cvref_t<T>>{} };
-
-    requires detail::_box_traits::valid_specialization2<
-        detail::_box_traits::Builder<box_traits<std::remove_cvref_t<T>>, std::remove_cvref_t<T>>>;
-    // requires detail::_box_traits::has_specialization<std::remove_cvref_t<T>>;
-    // requires detail::_box_traits::valid_specialization<std::remove_cvref_t<T>>;
+    typename detail::_box_traits::TraitsFor<std::remove_cvref_t<T>>;
+    { detail::_box_traits::TraitsFor<std::remove_cvref_t<T>>{} };
+    requires detail::_box_traits::valid_specialization2<detail::_box_traits::TraitsFor<std::remove_cvref_t<T>>>;
 };
 
 #if !defined(BEMAN_MONADICS_BOX_TRAITS_BUILDER)
@@ -286,7 +251,7 @@ template <has_box_traits T>
 using box_traits_for = box_traits<std::remove_cvref_t<T>>;
 #else
 template <typename T>
-using box_traits_for = detail::_box_traits::Builder<box_traits<std::remove_cvref_t<T>>, std::remove_cvref_t<T>>;
+using box_traits_for = detail::_box_traits::TraitsFor<std::remove_cvref_t<T>>;
 #endif
 
 /*
