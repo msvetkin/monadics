@@ -51,6 +51,7 @@ TEST_CASE("has-box-traits") {
 
     REQUIRE(Traits::lift(10) == std::make_shared<int>(10));
     REQUIRE(Traits::lift_error() == std::shared_ptr<int>{});
+    REQUIRE(Traits::value(std::make_shared<int>(10)) == 10);
     // STATIC_REQUIRE(has_box_traits<std::shared_ptr<int>>);
 }
 

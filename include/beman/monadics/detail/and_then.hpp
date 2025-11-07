@@ -39,46 +39,48 @@ struct op_fn {
         using BoxTraits = box_traits_for<Box>;
 
         // clang bug?
-        using Value = decltype([]() {
-            if constexpr (std::is_pointer_v<std::remove_cvref_t<Box>>) {
-                return std::type_identity<std::remove_cvref_t<Box>>{};
-                // return std::type_identity<decltype(BoxTraits::value(std::forward<Box>(box)))>{};
-            } else {
-                return std::type_identity<decltype(BoxTraits::value(std::forward<Box>(box)))>{};
-            }
-        }())::type;
+        // using Value = decltype([]() {
+        // if constexpr (std::is_pointer_v<std::remove_cvref_t<Box>>) {
+        // return std::type_identity<std::remove_cvref_t<Box>>{};
+        // // return std::type_identity<decltype(BoxTraits::value(std::forward<Box>(box)))>{};
+        // } else {
+        // return std::type_identity<decltype(BoxTraits::value(std::forward<Box>(box)))>{};
+        // }
+        // }())::type;
+
+        ;
 
         // using V2 = decltype(BoxTraits::value(std::declval<Value>()));
         // using V2 = decltype(BoxTraits::value(std::forward<Box>(box)));
-        using FF = invoke_result_t<decltype(std::forward<Fn>(fn)), Value
-                                   // decltype(BoxTraits::value(std::forward<Box>(box)))
-                                   >;
-
-        // using F2 = invoke_result_t<
-        // decltype(std::forward<Fn>(fn)),
-        // Value
+        // using FF = invoke_result_t<decltype(std::forward<Fn>(fn)), Value
         // // decltype(BoxTraits::value(std::forward<Box>(box)))
         // >;
 
-        // using NewBoxTraits = box_traits_for<NewBox>;
-        // return std::forward<Fn>(fn)(std::forward<Box>(box));
-        return std::invoke<decltype(fn), decltype(box)>(std::forward<Fn>(fn), std::forward<Box>(box));
+        using NewBox =
+            invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(BoxTraits::value(std::forward<Box>(box)))>;
+        using NewBoxTraits = box_traits_for<NewBox>;
+
+        // return std::invoke(
+        // std::forward<Fn>(fn),
+        // BoxTraits::value(std::forward<Box>(box)));
 
         // if (std::invoke(BoxTraits::has_value, box)) {
-        // if (BoxTraits::has_value(box)) {
-        // if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
-        // return std::forward<Fn>(fn)();
-        // } else {
-        // return std::forward<Fn>(fn)(std::forward<Box>(box));
-        // // return std::forward<Fn>(fn)(BoxTraits::value(std::forward<Box>(box)));
-        // }
-        // }
+        if (BoxTraits::has_value(box)) {
+            if (BoxTraits::has_value(box)) {
+                if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
+                    return std::forward<Fn>(fn)();
+                } else {
+                    // return std::forward<Fn>(fn)(std::forward<Box>(box));
+                    return std::forward<Fn>(fn)(BoxTraits::value(std::forward<Box>(box)));
+                }
+            }
+        }
 
-        // if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
-        // return NewBoxTraits::lift_error(BoxTraits::error(std::forward<Box>(box)));
-        // } else {
-        // return NewBoxTraits::lift_error();
-        // }
+        if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
+            return NewBoxTraits::lift_error(BoxTraits::error(std::forward<Box>(box)));
+        } else {
+            return NewBoxTraits::lift_error();
+        }
     }
 };
 

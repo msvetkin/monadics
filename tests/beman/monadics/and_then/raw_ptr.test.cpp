@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
+#include <cstddef>
+#include <tuple>
+#include <type_traits>
 struct Foo {
     int value{};
 };
@@ -22,10 +25,24 @@ TEST_CASE("has-box-traits") {
     STATIC_REQUIRE(std::same_as<Traits::error_type, std::nullptr_t>);
     STATIC_REQUIRE(std::same_as<Traits::rebind_value<float>, float*>);
     STATIC_REQUIRE(std::same_as<Traits::rebind_error<float>, int*>);
-    constexpr int value = 10;
-    STATIC_REQUIRE(Traits::value(&value) == 10);
+    int value = 10;
+    REQUIRE(Traits::value(&value) == 10);
     STATIC_REQUIRE(Traits::error() == nullptr);
     // STATIC_REQUIRE(Traits::lift(10) == std::optional{10});
+    //
+    //
+    //
+    auto getValue = [](auto&& b) -> decltype(Traits::value(std::forward<decltype(b)>(b))) {
+        // return Traits::value(std::forward<decltype(b)>(b));
+        //
+        // using R = decltype(Traits::value2(std::forward<decltype(b)>(b)));
+        // static_assert(std::same_as<R, int&>);
+        // return std::forward<R>(Traits::value2(std::forward<decltype(b)>(b)));
+        return Traits::value(std::forward<decltype(b)>(b));
+    };
+
+    STATIC_REQUIRE(std::same_as<decltype(getValue(std::move(static_cast<int*>(nullptr)))), int&>);
+
     STATIC_REQUIRE(Traits::lift_error() == static_cast<int*>(nullptr));
 }
 
@@ -35,14 +52,15 @@ TEST_CASE("with-value") {
         Boo boo{.foo = &foo};
 
         auto result = &boo | and_then([&](auto&& b) {
-            static_assert(std::same_as<decltype(b), Boo*&&>);
+            // static_assert(std::same_as<decltype(b), Boo*&>);
             // return std::addressof(*b);
             // b.foo->value += 5;
-            return b->foo;
-        }) | and_then([](auto&& f) {
-            f->value += 5;
-            return f;
+            return b.foo;
+        }) | and_then([](Foo& f) {
+            f.value += 5;
+            return &f;
         });
+
         return result->value;
     }();
 
@@ -54,11 +72,192 @@ TEST_CASE("self2") {
         Foo foo{.value = 5};
         Boo boo{.foo = &foo};
 
-        auto result = &boo | and_then([&](auto&& b) { return b; }) | and_then([](auto&& b) { return b; });
+        auto result = &boo | and_then([](auto&& b) { return &b; }) | and_then([](auto&& b) { return &b; });
         return result->foo->value;
     }();
 
     STATIC_REQUIRE(value == 5);
+}
+
+template <typename T1, typename T2>
+auto inputQualifiers2(T1 t1, T2&& t2) {
+    using Tuple = std::tuple<T1, decltype(std::forward<T1>(t1)), T2, decltype(std::forward<T2>(t2))>;
+    return std::type_identity<Tuple>{};
+};
+
+template <typename T1, typename T2>
+auto inputQualifiers(T1 t1, T2&& t2) {
+    using Tuple1 = decltype(inputQualifiers2(t1, std::forward<T2>(t2)))::type;
+
+    using Tuple = std::tuple<T1,
+                             decltype(std::forward<T1>(t1)),
+                             T2,
+                             decltype(std::forward<T2>(t2)),
+                             std::tuple_element_t<0, Tuple1>,
+                             std::tuple_element_t<1, Tuple1>,
+                             std::tuple_element_t<2, Tuple1>,
+                             std::tuple_element_t<3, Tuple1> >;
+    return std::type_identity<Tuple>{};
+};
+
+TEST_CASE("input-qualifiers") {
+    struct Foo {};
+
+    {
+        // template args - deduced
+        // passed        - temporary
+        using Tuple      = decltype(inputQualifiers(Foo{}, Foo{}))::type;
+        using T1         = std::tuple_element_t<0, Tuple>;
+        using ForwardT1  = std::tuple_element_t<1, Tuple>;
+        using TA1        = std::tuple_element_t<4, Tuple>;
+        using ForwardTA1 = std::tuple_element_t<5, Tuple>;
+
+        using T2         = std::tuple_element_t<2, Tuple>;
+        using ForwardT2  = std::tuple_element_t<3, Tuple>;
+        using TA2        = std::tuple_element_t<6, Tuple>;
+        using ForwardTA2 = std::tuple_element_t<7, Tuple>;
+
+        static_assert(std::same_as<T1, Foo>);
+        static_assert(std::same_as<ForwardT1, Foo&&>);
+        static_assert(std::same_as<TA1, Foo>);
+        static_assert(std::same_as<ForwardTA1, Foo&&>);
+
+        static_assert(std::same_as<T2, Foo>);
+        static_assert(std::same_as<ForwardT2, Foo&&>);
+        static_assert(std::same_as<TA2, Foo>);
+        static_assert(std::same_as<ForwardTA2, Foo&&>);
+    };
+
+    {
+        // template args - T1 implicit, T2 deduced
+        // passed        - temporary
+        using Tuple      = decltype(inputQualifiers<Foo&&>(Foo{}, Foo{}))::type;
+        using T1         = std::tuple_element_t<0, Tuple>;
+        using ForwardT1  = std::tuple_element_t<1, Tuple>;
+        using TA1        = std::tuple_element_t<4, Tuple>;
+        using ForwardTA1 = std::tuple_element_t<5, Tuple>;
+
+        using T2         = std::tuple_element_t<2, Tuple>;
+        using ForwardT2  = std::tuple_element_t<3, Tuple>;
+        using TA2        = std::tuple_element_t<6, Tuple>;
+        using ForwardTA2 = std::tuple_element_t<7, Tuple>;
+
+        static_assert(std::same_as<T1, Foo&&>);
+        static_assert(std::same_as<TA1, Foo>);
+        static_assert(std::same_as<ForwardT1, Foo&&>);
+        static_assert(std::same_as<ForwardTA1, Foo&&>);
+
+        static_assert(std::same_as<T2, Foo>);
+        static_assert(std::same_as<ForwardT2, Foo&&>);
+    };
+
+    {
+        // template args - deduced
+        // passed        - as value
+        Foo foo;
+        using Tuple     = decltype(inputQualifiers(foo, foo))::type;
+        using T1        = std::tuple_element_t<0, Tuple>;
+        using ForwardT1 = std::tuple_element_t<1, Tuple>;
+
+        using T2        = std::tuple_element_t<2, Tuple>;
+        using ForwardT2 = std::tuple_element_t<3, Tuple>;
+
+        static_assert(std::same_as<T1, Foo>);
+        static_assert(std::same_as<ForwardT1, Foo&&>);
+
+        static_assert(std::same_as<T2, Foo&>);
+        static_assert(std::same_as<ForwardT2, Foo&>);
+    };
+
+    {
+        // template args - T1 implicit, T2 deduced
+        // passed        - as value
+        Foo foo;
+        using Tuple     = decltype(inputQualifiers<Foo&>(foo, foo))::type;
+        using T1        = std::tuple_element_t<0, Tuple>;
+        using ForwardT1 = std::tuple_element_t<1, Tuple>;
+
+        using T2        = std::tuple_element_t<2, Tuple>;
+        using ForwardT2 = std::tuple_element_t<3, Tuple>;
+
+        static_assert(std::same_as<T1, Foo&>);
+        static_assert(std::same_as<ForwardT1, Foo&>);
+
+        static_assert(std::same_as<T2, Foo&>);
+        static_assert(std::same_as<ForwardT2, Foo&>);
+    };
+
+    {
+        // template args - deduced
+        // passed        - as const value
+        const Foo foo;
+        using Tuple     = decltype(inputQualifiers(foo, foo))::type;
+        using T1        = std::tuple_element_t<0, Tuple>;
+        using ForwardT1 = std::tuple_element_t<1, Tuple>;
+
+        using T2        = std::tuple_element_t<2, Tuple>;
+        using ForwardT2 = std::tuple_element_t<3, Tuple>;
+
+        static_assert(std::same_as<T1, Foo>);
+        static_assert(std::same_as<ForwardT1, Foo&&>);
+
+        static_assert(std::same_as<T2, const Foo&>);
+        static_assert(std::same_as<ForwardT2, const Foo&>);
+    };
+
+    {
+        // template args - T1 implicit, T2 deduced
+        // passed        - as const value
+        const Foo foo;
+        using Tuple     = decltype(inputQualifiers<const Foo&>(foo, foo))::type;
+        using T1        = std::tuple_element_t<0, Tuple>;
+        using ForwardT1 = std::tuple_element_t<1, Tuple>;
+
+        using T2        = std::tuple_element_t<2, Tuple>;
+        using ForwardT2 = std::tuple_element_t<3, Tuple>;
+
+        static_assert(std::same_as<T1, const Foo&>);
+        static_assert(std::same_as<ForwardT1, const Foo&>);
+
+        static_assert(std::same_as<T2, const Foo&>);
+        static_assert(std::same_as<ForwardT2, const Foo&>);
+    };
+
+    {
+        // template args - deduced
+        // passed        - as const temporary
+        const Foo foo;
+        using Tuple     = decltype(inputQualifiers(std::move(foo), std::move(foo)))::type;
+        using T1        = std::tuple_element_t<0, Tuple>;
+        using ForwardT1 = std::tuple_element_t<1, Tuple>;
+
+        using T2        = std::tuple_element_t<2, Tuple>;
+        using ForwardT2 = std::tuple_element_t<3, Tuple>;
+
+        static_assert(std::same_as<T1, Foo>);
+        static_assert(std::same_as<ForwardT1, Foo&&>);
+
+        static_assert(std::same_as<T2, const Foo>);
+        static_assert(std::same_as<ForwardT2, const Foo&&>);
+    };
+
+    {
+        // template args - T1 implicit, T2 deduced
+        // passed        - as const value
+        const Foo foo;
+        using Tuple     = decltype(inputQualifiers<const Foo&&>(std::move(foo), std::move(foo)))::type;
+        using T1        = std::tuple_element_t<0, Tuple>;
+        using ForwardT1 = std::tuple_element_t<1, Tuple>;
+
+        using T2        = std::tuple_element_t<2, Tuple>;
+        using ForwardT2 = std::tuple_element_t<3, Tuple>;
+
+        static_assert(std::same_as<T1, const Foo&&>);
+        static_assert(std::same_as<ForwardT1, const Foo&&>);
+
+        static_assert(std::same_as<T2, const Foo>);
+        static_assert(std::same_as<ForwardT2, const Foo&&>);
+    };
 }
 
 TEST_CASE("deep") {

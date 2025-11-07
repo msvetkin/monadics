@@ -131,9 +131,28 @@ consteval auto getValue() noexcept {
         // return *std::forward<decltype(b)>(b);
         // };
     } else {
-        return [](auto&& b) { return Traits::value(std::forward<decltype(b)>(b)); };
+        // return &Traits::value;
+        // clang????
+        return [](auto&& b) -> decltype(Traits::value(std::forward<decltype(b)>(b))) {
+            return Traits::value(std::forward<decltype(b)>(b));
+        };
     }
 };
+
+// template <typename Traits, typename Box>
+// concept hasValueFn = requires (Box box) {
+// { Traits::value(box) };
+// };
+
+// template <typename Traits, typename Box>
+// struct GetValue {
+
+// [[nodiscard]] constexpr decltype(auto) operator()() const noexcept
+// requires ()
+// {
+
+// }
+// };
 
 template <typename Traits, typename Box>
 consteval auto getError() noexcept {
@@ -172,6 +191,14 @@ struct Builder : Traits {
     using rebind_error = RebindError<Traits, Box, E>;
 
     inline static constexpr auto value = getValue<Traits, Box>();
+
+    // template <typename B = Box>
+    // requires (!hasValueFn<Traits, B>)
+    // [[nodiscard]] static constexpr decltype(auto) value(B &&box) noexcept {
+    // return std::forward<decltype(box)>(box).value();
+    // };
+
+    // using Traits::value;
 
     inline static constexpr auto error = getError<Traits, Box>();
 

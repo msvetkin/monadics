@@ -19,10 +19,7 @@ struct beman::monadics::box_traits<T*> {
 
     [[nodiscard]] inline static constexpr bool has_value(const auto& box) noexcept { return static_cast<bool>(box); }
 
-    [[nodiscard]] inline static constexpr decltype(auto) value(auto&& box) noexcept {
-        // static_assert(std::same_as<decltype(box), Boo*&&>);
-        return std::forward<decltype(box)>(box);
-    }
+    [[nodiscard]] inline static constexpr value_type& value2(T* box) noexcept { return *box; }
 
     [[nodiscard]] inline static constexpr auto error() noexcept { return nullptr; }
 
@@ -45,12 +42,11 @@ struct beman::monadics::box_traits<Box> {
     template <typename>
     using rebind_error = Box;
 
-    [[nodiscard]] inline static constexpr bool has_value(const Box& box) noexcept { return static_cast<bool>(box); }
+    [[nodiscard]] inline static constexpr bool has_value(const Box box) noexcept { return static_cast<bool>(box); }
 
-    template <typename B = Box>
-    [[nodiscard]] inline static constexpr decltype(auto) value(B&& box) noexcept {
-        return *std::forward<B>(box);
-    }
+    [[nodiscard]] inline static constexpr value_type& value(Box box) noexcept { return *box; }
+
+    // [[nodiscard]] inline static constexpr value_type& value2(Box box) noexcept { return *box; }
 
     [[nodiscard]] inline static constexpr auto error() noexcept { return nullptr; }
 
