@@ -101,6 +101,9 @@ consteval auto liftValue() noexcept {
     if constexpr (requires { Traits::lift(); }) {
         return &Traits::lift;
     } else if constexpr (requires { Traits::lift(Traits::value(std::declval<Box>())); }) {
+        // return [](auto&& v) -> decltype(Traits::lift(std::forward<decltype(v)>(v))) {
+        // return Traits::lift(std::forward<decltype(v)>(v));
+        // };
         return [](auto&& v) { return Traits::lift(std::forward<decltype(v)>(v)); };
     } else if constexpr (std::is_void_v<Value>) {
         return []() -> Box { return {}; };

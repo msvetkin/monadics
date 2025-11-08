@@ -60,19 +60,12 @@ struct op_fn {
             invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(BoxTraits::value(std::forward<Box>(box)))>;
         using NewBoxTraits = box_traits_for<NewBox>;
 
-        // return std::invoke(
-        // std::forward<Fn>(fn),
-        // BoxTraits::value(std::forward<Box>(box)));
-
-        // if (std::invoke(BoxTraits::has_value, box)) {
         if (BoxTraits::has_value(box)) {
-            if (BoxTraits::has_value(box)) {
-                if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
-                    return std::forward<Fn>(fn)();
-                } else {
-                    // return std::forward<Fn>(fn)(std::forward<Box>(box));
-                    return std::forward<Fn>(fn)(BoxTraits::value(std::forward<Box>(box)));
-                }
+            if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
+                return std::forward<Fn>(fn)();
+            } else {
+                // return std::forward<Fn>(fn)(std::forward<Box>(box));
+                return std::forward<Fn>(fn)(BoxTraits::value(std::forward<Box>(box)));
             }
         }
 
