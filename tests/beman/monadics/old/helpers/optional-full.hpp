@@ -20,7 +20,9 @@ struct beman::monadics::box_traits<std::optional<T>> {
 
     // using has_value_t = bool (std::optional<T>::*)() const noexcept;
     // inline static constexpr auto has_value = static_cast<has_value_t>(&std::optional<T>::operator bool);
-    [[nodiscard]] inline static constexpr bool has_value(const std::optional<T>& box) noexcept { return box.has_value(); }
+    [[nodiscard]] inline static constexpr bool has_value(const std::optional<T>& box) noexcept {
+        return box.has_value();
+    }
 
     [[nodiscard]] inline static constexpr decltype(auto) value(auto&& box) noexcept {
         return std::forward<decltype(box)>(box).value();
@@ -28,13 +30,11 @@ struct beman::monadics::box_traits<std::optional<T>> {
 
     [[nodiscard]] inline static constexpr auto error() noexcept { return std::nullopt; }
 
-    [[nodiscard]] inline static constexpr std::optional<T> lift(auto &&value) noexcept {
+    [[nodiscard]] inline static constexpr std::optional<T> lift(auto&& value) noexcept {
         return {std::forward<decltype(value)>(value)};
     }
 
-    [[nodiscard]] inline static constexpr std::optional<T> lift_error() noexcept {
-        return {};
-    }
+    [[nodiscard]] inline static constexpr std::optional<T> lift_error() noexcept { return {}; }
 };
 
 /*

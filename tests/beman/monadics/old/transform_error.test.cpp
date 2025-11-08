@@ -16,11 +16,11 @@
 //  - transformable
 //  - error_transformable
 
-template<typename Box>
+template <typename Box>
 concept error_transformable = requires {
-  {
-    Box{} | transform_error([] (auto &e) { return 1; })
-  };
+    {
+        Box{} | transform_error([](auto& e) { return 1; })
+    };
 };
 
 namespace beman::monadics::tests {
@@ -33,42 +33,32 @@ TEST_CASE("optional-has-box-traits") {
 }
 
 TEST_CASE("my-expected-with-value") {
-  constexpr auto result = helpers::expected<int, float>{10}
-      | transform_error([] (float &&) {
-          return std::string_view{"hm"};
-      });
+    constexpr auto result =
+        helpers::expected<int, float>{10} | transform_error([](float&&) { return std::string_view{"hm"}; });
 
-  STATIC_REQUIRE(result.has_value());
-  STATIC_REQUIRE(result.value() == 10);
+    STATIC_REQUIRE(result.has_value());
+    STATIC_REQUIRE(result.value() == 10);
 }
 
 TEST_CASE("my-expected-without-value") {
-  constexpr auto result = helpers::expected<int, double>{1.0}
-      | transform_error([] (auto &&e) {
-          return  e + 5.0;
-      });
+    constexpr auto result = helpers::expected<int, double>{1.0} | transform_error([](auto&& e) { return e + 5.0; });
 
-  STATIC_REQUIRE(result.has_value() == false);
-  STATIC_REQUIRE(result.error() == 6.0);
+    STATIC_REQUIRE(result.has_value() == false);
+    STATIC_REQUIRE(result.error() == 6.0);
 }
 
 TEST_CASE("my-expected-void-with-value") {
-  constexpr auto result = helpers::expected<void, float>{}
-      | transform_error([] (float &&e) {
-          return  e + 10;
-      });
+    constexpr auto result = helpers::expected<void, float>{} | transform_error([](float&& e) { return e + 10; });
 
-  STATIC_REQUIRE(result.has_value());
+    STATIC_REQUIRE(result.has_value());
 }
 
 TEST_CASE("my-expected-void-without-value") {
-  constexpr auto result = helpers::expected<void, double>{10.0}
-      | transform_error([] (double &&e) {
-          return  e + 55.5;
-      });
+    constexpr auto result =
+        helpers::expected<void, double>{10.0} | transform_error([](double&& e) { return e + 55.5; });
 
-  STATIC_REQUIRE(result.has_value() == false);
-  STATIC_REQUIRE(result.error() == 65.5);
+    STATIC_REQUIRE(result.has_value() == false);
+    STATIC_REQUIRE(result.error() == 65.5);
 }
 
 } // namespace beman::monadics::tests

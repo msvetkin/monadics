@@ -11,8 +11,8 @@ struct none {};
 
 template <typename T>
 struct myoptional {
-  bool has_value{false};
-  T value;
+    bool has_value{false};
+    T    value;
 };
 
 } // namespace helpers
@@ -36,13 +36,11 @@ struct beman::monadics::box_traits<helpers::myoptional<T>> {
 
     [[nodiscard]] inline static constexpr helpers::none error() noexcept { return {}; }
 
-    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift(auto &&v) noexcept {
-      return {.has_value = true, .value = std::forward<decltype(value)>(value)};
+    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift(auto&& v) noexcept {
+        return {.has_value = true, .value = std::forward<decltype(value)>(value)};
     }
 
-    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift_error() noexcept {
-      return {};
-    }
+    [[nodiscard]] inline static constexpr helpers::myoptional<T> lift_error() noexcept { return {}; }
 };
 
-#endif  // BEMAN_MONADICS_TESTS_HELPERS_MYOPTIONAL_HPP
+#endif // BEMAN_MONADICS_TESTS_HELPERS_MYOPTIONAL_HPP

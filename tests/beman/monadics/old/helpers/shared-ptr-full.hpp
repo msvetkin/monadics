@@ -18,9 +18,7 @@ struct beman::monadics::box_traits<std::shared_ptr<T>> {
     template <typename>
     using rebind_error = std::shared_ptr<T>;
 
-    [[nodiscard]] inline static constexpr bool has_value(const auto& box) noexcept {
-      return static_cast<bool>(box);
-    }
+    [[nodiscard]] inline static constexpr bool has_value(const auto& box) noexcept { return static_cast<bool>(box); }
 
     [[nodiscard]] inline static constexpr decltype(auto) value(auto&& box) noexcept {
         return *std::forward<decltype(box)>(box);
@@ -28,13 +26,11 @@ struct beman::monadics::box_traits<std::shared_ptr<T>> {
 
     [[nodiscard]] inline static constexpr auto error() noexcept { return nullptr; }
 
-    [[nodiscard]] inline static constexpr std::shared_ptr<T> lift(auto &&value) noexcept {
+    [[nodiscard]] inline static constexpr std::shared_ptr<T> lift(auto&& value) noexcept {
         return std::make_shared<T>(std::forward<decltype(value)>(value));
     }
 
-    [[nodiscard]] inline static constexpr std::shared_ptr<T> lift_error() noexcept {
-        return {};
-    }
+    [[nodiscard]] inline static constexpr std::shared_ptr<T> lift_error() noexcept { return {}; }
 };
 
 /*

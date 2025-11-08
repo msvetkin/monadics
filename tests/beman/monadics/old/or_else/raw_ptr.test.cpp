@@ -14,18 +14,15 @@ TEST_CASE("has-box-traits") {
 }
 
 TEST_CASE("with-value") {
-  constexpr int value = [] () {
-    int value{10};
-    int *p = nullptr;
+    constexpr int value = []() {
+        int  value{10};
+        int* p = nullptr;
 
-    auto result = p
-      | or_else([&value] () {
-        return &value;
-      });
-    return *result;
-  }();
+        auto result = p | or_else([&value]() { return &value; });
+        return *result;
+    }();
 
-  STATIC_REQUIRE(value == 10);
+    STATIC_REQUIRE(value == 10);
 }
 
 } // namespace beman::monadics::tests
