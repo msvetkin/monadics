@@ -41,8 +41,8 @@ TEST_CASE("with-void-value-return-void-with-error") {
 
 TEST_CASE("with-value-return-non-void-with-value") {
     constexpr auto result =
-        stdx::expected<int, double>{10} |
-        and_then([](auto) -> stdx::expected<std::string_view, double> { return std::string_view{"some"}; });
+        stdx::expected<int, double>{10}
+        | and_then([](auto) -> stdx::expected<std::string_view, double> { return std::string_view{"some"}; });
 
     STATIC_REQUIRE(std::same_as<decltype(result), const stdx::expected<std::string_view, double>>);
     STATIC_REQUIRE(result.has_value());
@@ -50,8 +50,8 @@ TEST_CASE("with-value-return-non-void-with-value") {
 }
 
 TEST_CASE("with-value-return-non-void-with-error") {
-    constexpr auto result = stdx::expected<int, double>{10} |
-                            and_then([](auto&& v) -> stdx::expected<std::string_view, double> { return v * 2.0; });
+    constexpr auto result = stdx::expected<int, double>{10}
+                          | and_then([](auto&& v) -> stdx::expected<std::string_view, double> { return v * 2.0; });
 
     STATIC_REQUIRE(std::same_as<decltype(result), const stdx::expected<std::string_view, double>>);
     STATIC_REQUIRE(result.has_value() == false);

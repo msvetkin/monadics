@@ -19,7 +19,7 @@
 template <typename Box>
 concept error_transformable = requires {
     {
-        Box{} | transform_error([](auto& e) { return 1; })
+        Box{} | transform_error([](auto & e) { return 1; })
     };
 };
 

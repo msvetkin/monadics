@@ -12,9 +12,10 @@ TEST_CASE("with-null-then-else-transform") {
     using Expected = stdx::expected<int, double>;
 
     constexpr int value = []() {
-        const auto result = Expected{-1.0} | and_then([](auto&& v) { return Expected{v + 10}; }) |
-                            or_else([](auto&& e) { return Expected{int(e)}; }) |
-                            transform([](auto&& v) { return v + 50; });
+        const auto result = Expected{-1.0}
+                          | and_then([](auto&& v) { return Expected{v + 10}; })
+                          | or_else([](auto&& e) { return Expected{int(e)}; })
+                          | transform([](auto&& v) { return v + 50; });
         return result.value();
     }();
 
@@ -25,9 +26,10 @@ TEST_CASE("with-value-then-else-transform") {
     using Expected = stdx::expected<int, double>;
 
     constexpr int value = []() {
-        const auto result = Expected{0} | and_then([](auto&& v) { return Expected{v + 10}; }) |
-                            or_else([](auto&& e) { return Expected{int(e)}; }) |
-                            transform([](auto&& v) { return v + 50; });
+        const auto result = Expected{0}
+                          | and_then([](auto&& v) { return Expected{v + 10}; })
+                          | or_else([](auto&& e) { return Expected{int(e)}; })
+                          | transform([](auto&& v) { return v + 50; });
         return result.value();
     }();
 

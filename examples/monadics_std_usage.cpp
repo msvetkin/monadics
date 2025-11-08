@@ -2,6 +2,4 @@
 
 #include <beman/monadics/monadics.hpp>
 
-int main() {
-    return 0;
-}
+int main() { return 0; }

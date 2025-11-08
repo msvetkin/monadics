@@ -70,8 +70,8 @@ TEST_CASE("value-return-same-error-2") {
 }
 
 TEST_CASE("value-return-another-error-2") {
-    constexpr auto result = helpers::expected<double, char>{'c'} |
-                            or_else([](auto e) { return helpers::expected<double, int>(static_cast<int>(e)); });
+    constexpr auto result = helpers::expected<double, char>{'c'}
+                          | or_else([](auto e) { return helpers::expected<double, int>(static_cast<int>(e)); });
 
     STATIC_REQUIRE(std::same_as<decltype(result), const helpers::expected<double, int>>);
     STATIC_REQUIRE(result.has_value() == false);

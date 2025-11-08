@@ -10,8 +10,10 @@ namespace beman::monadics::tests {
 
 TEST_CASE("with-null-then-else-transform") {
     constexpr int value = []() {
-        const auto result = std::optional<int>{} | and_then([](auto&& v) { return std::optional{v + 10}; }) |
-                            or_else([]() { return std::optional{-10}; }) | transform([](auto&& v) { return v + 50; });
+        const auto result = std::optional<int>{}
+                          | and_then([](auto&& v) { return std::optional{v + 10}; })
+                          | or_else([]() { return std::optional{-10}; })
+                          | transform([](auto&& v) { return v + 50; });
         return *result;
     }();
 
@@ -20,8 +22,10 @@ TEST_CASE("with-null-then-else-transform") {
 
 TEST_CASE("with-value-then-else-transform") {
     constexpr int value = []() {
-        const auto result = std::optional<int>{10} | and_then([](auto&& v) { return std::optional{v + 10}; }) |
-                            or_else([]() { return std::optional{-10}; }) | transform([](auto&& v) { return v + 50; });
+        const auto result = std::optional<int>{10}
+                          | and_then([](auto&& v) { return std::optional{v + 10}; })
+                          | or_else([]() { return std::optional{-10}; })
+                          | transform([](auto&& v) { return v + 50; });
         return *result;
     }();
 

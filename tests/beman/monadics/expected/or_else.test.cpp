@@ -68,8 +68,8 @@ TEST_CASE("value-return-same-error-2") {
 }
 
 TEST_CASE("value-return-another-error-2") {
-    constexpr auto result = stdx::expected<double, char>{'c'} |
-                            or_else([](auto e) { return stdx::expected<double, int>(static_cast<int>(e)); });
+    constexpr auto result = stdx::expected<double, char>{'c'}
+                          | or_else([](auto e) { return stdx::expected<double, int>(static_cast<int>(e)); });
 
     STATIC_REQUIRE(std::same_as<decltype(result), const stdx::expected<double, int>>);
     STATIC_REQUIRE(result.has_value() == false);

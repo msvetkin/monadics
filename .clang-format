@@ -1,5 +1,13 @@
 ---
 Language:        Cpp
+
+# BreakBinaryOperations: OnePerLine
+BreakBinaryOperations: RespectPrecedence
+# BreakBeforeBinaryOperators: true
+BreakBeforeBinaryOperators: NonAssignment
+AlignOperands: AlignAfterOperator
+# AlignOperands: Align
+
 AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: None
@@ -33,7 +41,7 @@ AlignConsecutiveShortCaseStatements:
   AcrossComments:  false
   AlignCaseColons: false
 AlignEscapedNewlines: Left
-AlignOperands:   Align
+# AlignOperands:   Align
 AlignTrailingComments:
   Kind:            Always
   OverEmptyLines:  0
@@ -77,7 +85,7 @@ BraceWrapping:
 BreakAfterAttributes: Never
 BreakAfterJavaFieldAnnotations: false
 BreakArrays:     true
-BreakBeforeBinaryOperators: None
+# BreakBeforeBinaryOperators: None
 BreakBeforeConceptDeclarations: Always
 BreakBeforeBraces: Custom
 BreakBeforeInlineASMColon: OnlyMultiline

@@ -42,8 +42,8 @@ struct op_fn {
         using NewBoxTraits = box_traits_for<typename BoxTraits::template rebind_error<NewError>>;
 
         // transform_error does not make sense if you don't have error
-        return std::forward<Box>(box) |
-               or_else([&fn](auto&& v) { return NewBoxTraits::lift_error(fn(std::forward<decltype(v)>(v))); });
+        return std::forward<Box>(box)
+             | or_else([&fn](auto&& v) { return NewBoxTraits::lift_error(fn(std::forward<decltype(v)>(v))); });
     }
 };
 

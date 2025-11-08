@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
+#include "beman/monadics/box_traits.hpp"
 #include "trait.hpp"
 
 #include "beman/monadics/detail/and_then.hpp"
@@ -18,6 +19,11 @@ struct Boo {
 };
 
 } // namespace
+
+// auto handler = curl_init();
+
+// handler | and_then(curl_set_option, ....);
+// | and_then(curl_set_option, ....);
 
 TEST_CASE("with-value") {
     constexpr int value = []() {

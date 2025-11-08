@@ -258,10 +258,10 @@ TEST_CASE("as-box") {
         std::optional<int> op{10};
 
         using T     = std::optional<int>;
-        using fn    = typename T::value_type& (T::*)()&;
+        using fn    = typename T::value_type& (T::*)() &;
         fn value_fn = &decltype(op)::value;
 
-        int& (T::*get_value)()& = &T::value;
+        int& (T::*get_value)() & = &T::value;
 
         return std::invoke(get_value, op);
     }();
@@ -270,8 +270,8 @@ TEST_CASE("as-box") {
 
     using T                                                   = int;
     using Box                                                 = std::optional<T>;
-    constexpr T& (Box::*value_ref)()&                         = &Box::value;
-    constexpr T && (Box::*value_rvalue)()&&                   = &Box::value;
+    constexpr T& (Box::*value_ref)() &                        = &Box::value;
+    constexpr T && (Box::*value_rvalue)() &&                  = &Box::value;
     constexpr const T& (Box::*value_const_ref)() const&       = &Box::value;
     constexpr const T && (Box::*value_const_rvalue)() const&& = &Box::value;
 
@@ -282,7 +282,7 @@ TEST_CASE("as-box") {
     STATIC_REQUIRE(value_const_ref == value_const_ref2);
     // T &&(Box::*value_rvalue)()    && = &Box::value;
 
-    STATIC_REQUIRE(static_cast<T& (Box::*)()&>(&Box::value) == value_ref);
+    STATIC_REQUIRE(static_cast<T& (Box::*)() &>(&Box::value) == value_ref);
     // template<typename Box>
     // inline static constexpr T&(Box::*value)() & = &Box::value;
 }
