@@ -13,7 +13,12 @@ TEST_CASE("box-trait-for") {
     STATIC_REQUIRE(std::same_as<Traits::rebind_value<double>, std::shared_ptr<double>>);
     STATIC_REQUIRE(std::same_as<Traits::rebind_error<double>, std::shared_ptr<int>>);
 
-    REQUIRE(Traits::lift(10) == std::make_shared<int>(10));
+    const auto sp1 = Traits::lift(10);
+    const auto sp2 = std::make_shared<int>(10);
+    REQUIRE(sp1);
+    REQUIRE(sp2);
+    REQUIRE(*sp1 == *sp2);
+
     REQUIRE(Traits::lift_error() == std::shared_ptr<int>{});
     REQUIRE(Traits::value(std::make_shared<int>(10)) == 10);
 }

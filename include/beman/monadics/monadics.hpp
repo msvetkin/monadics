@@ -3,8 +3,10 @@
 #ifndef BEMAN_MONADICS_MONADICS_HPP
 #define BEMAN_MONADICS_MONADICS_HPP
 
-namespace beman::exemplar {
-
-} // namespace beman::monadics
+#include <beman/monadics/box_traits.hpp>
+#include <beman/monadics/detail/and_then.hpp>
+#include <beman/monadics/detail/or_else.hpp>
+#include <beman/monadics/detail/transform.hpp>
+#include <beman/monadics/detail/transform_error.hpp>
 
 #endif // BEMAN_MONADICS_MONADICS_HPP

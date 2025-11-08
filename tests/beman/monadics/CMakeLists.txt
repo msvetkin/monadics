@@ -67,6 +67,9 @@ endforeach()
 
 set(tests optional raw_ptr shared_ptr expected)
 
+set(test_global_target "beman.monadics.tests")
+add_custom_target(${test_global_target})
+
 foreach(test_dir ${tests})
     set(test_set
         and_then
@@ -74,15 +77,17 @@ foreach(test_dir ${tests})
         trait
         transform
         transform_error
+        compose
     )
 
-    set(test_prefix "beman.monadics.tests.${test_dir}")
-    add_custom_target(${test_prefix})
+    set(test_dir_target "${test_global_target}.${test_dir}")
+    add_custom_target(${test_dir_target})
+    add_dependencies(${test_global_target} ${test_dir_target})
 
     foreach(test_name ${test_set})
-        set(test_target "${test_prefix}.${test_name}")
+        set(test_target "${test_dir_target}.${test_name}")
         add_executable(${test_target})
-        add_dependencies(${test_prefix} ${test_target})
+        add_dependencies(${test_dir_target} ${test_target})
 
         target_sources(
             ${test_target}
