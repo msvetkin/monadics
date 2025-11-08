@@ -23,4 +23,17 @@ TEST_CASE("box-trait-for") {
     REQUIRE(Traits::value(std::make_shared<int>(10)) == 10);
 }
 
+template <typename Traits>
+concept transformable = requires() {
+    // { Traits::lift(typename Traits::value_type{})  };
+    { Traits::lift(std::declval<typename Traits::value_type>()) };
+};
+
+TEST_CASE("liftable-value") {
+    using Traits = box_traits_for<std::shared_ptr<int>>;
+    STATIC_REQUIRE(transformable<Traits>);
+
+    // STATIC_REQUIRE(std::same_as<decltype(std::declval<int>()), int&>);
+}
+
 } // namespace beman::monadics::tests
