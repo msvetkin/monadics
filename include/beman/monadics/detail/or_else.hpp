@@ -34,31 +34,39 @@ template <typename Fn, typename Box, typename BoxTraits>
 using invoke_result_t = decltype(invoke_result<Fn, Box, BoxTraits>())::type;
 
 struct op_fn {
-    template <typename Box, typename Fn>
+    template <typename Traits, typename Box, typename Fn>
     [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept {
-        using BoxTraits = box_traits_for<Box>;
-        using NewBox    = invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(std::forward<Box>(box)), BoxTraits>;
+        using NewBox = decltype(Traits::invoke_with_error(std::forward<Fn>(fn), std::forward<Box>(box)));
+        // using NewBox    = invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(std::forward<Box>(box)), Traits>;
         using NewBoxTraits = box_traits_for<NewBox>;
 
+        if (!Traits::has_value(box)) {
+            return Traits::invoke_with_error(std::forward<Fn>(fn), std::forward<Box>(box));
+        }
+
+        return NewBoxTraits::lift_with_value(std::forward<Box>(box));
+
         // if (!std::invoke(&BoxTraits::has_value, box)) {
-        if (!BoxTraits::has_value(box)) {
+        // if (!Traits::has_value(box)) {
+        // return Traits::template invoke_with<&Traits::error>();
 
-            if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
-                // if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
-                return std::forward<Fn>(fn)(BoxTraits::error(std::forward<Box>(box)));
-            } else {
-                return std::forward<Fn>(fn)();
-            }
-        }
+        // if constexpr (requires { BoxTraits::error(std::forward<Box>(box)); }) {
+        // // if constexpr (std::is_void_v<typename BoxTraits::value_type>) {
+        // return std::forward<Fn>(fn)(BoxTraits::error(std::forward<Box>(box)));
+        // } else {
+        // return std::forward<Fn>(fn)();
+        // }
+        // }
 
-        if constexpr (requires {
-                          { BoxTraits::value(std::forward<Box>(box)) } -> std::same_as<void>;
-                      }) {
-            return NewBoxTraits::lift();
-        } else {
-            return NewBoxTraits::lift(BoxTraits::value(std::forward<Box>(box)));
-            // return NewBoxTraits::lift(BoxTraits::value());
-        }
+        // return NewBoxTraits::lift_with<&Traits::value>(std::forward<Box>(box));
+        // if constexpr (requires {
+        // { BoxTraits::value(std::forward<Box>(box)) } -> std::same_as<void>;
+        // }) {
+        // return NewBoxTraits::lift();
+        // } else {
+        // return NewBoxTraits::lift(BoxTraits::value(std::forward<Box>(box)));
+        // // return NewBoxTraits::lift(BoxTraits::value());
+        // }
     }
 };
 

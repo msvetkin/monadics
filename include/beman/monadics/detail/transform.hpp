@@ -42,15 +42,28 @@ struct LiftedFn {
     }
 };
 
-struct op_fn {
-    template <typename Box, typename Fn>
-    [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept {
-        using BoxTraits = box_traits_for<Box>;
-        using NewValue =
-            invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(BoxTraits::value(std::forward<Box>(box)))>;
-        using NewBoxTraits = box_traits_for<typename BoxTraits::template rebind_value<NewValue>>;
+template <typename T>
+concept False = false;
 
-        return std::forward<Box>(box) | and_then(LiftedFn<decltype(fn), NewBoxTraits>{std::forward<Fn>(fn)});
+struct op_fn {
+    template <typename Traits, typename Box, typename Fn>
+    [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept {
+        using NewValue     = decltype(Traits::invoke_with_value(std::forward<Fn>(fn), std::forward<Box>(box)));
+        using NewBoxTraits = box_traits_for<typename Traits::template rebind<NewValue>>;
+
+        return std::forward<Box>(box)
+             | and_then([f = std::forward<Fn>(fn)](auto&&... v) mutable -> typename NewBoxTraits::box_type {
+                   if constexpr (sizeof...(v) == 1) {
+                       return NewBoxTraits::lift(std::forward<decltype(f)>(f)(std::forward<decltype(v)>(v)...));
+                   } else if constexpr (std::is_void_v<typename NewBoxTraits::value_type>) {
+                       std::forward<decltype(f)>(f)();
+                       return NewBoxTraits::lift();
+                   } else if constexpr (std::is_void_v<typename Traits::value_type>) {
+                       return NewBoxTraits::lift(std::forward<decltype(f)>(f)());
+                   } else {
+                       static_assert(False<Box>, "something went wrong");
+                   }
+               });
     }
 };
 

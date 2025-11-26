@@ -3,7 +3,9 @@
 #ifndef BEMAN_MONADICS_DETAIL_PIPE_HPP
 #define BEMAN_MONADICS_DETAIL_PIPE_HPP
 
-#include <type_traits>
+#include <beman/monadics/detail/same_unqualified_as.hpp>
+#include <beman/monadics/box_traits.hpp>
+
 #include <utility>
 
 namespace beman::monadics::detail {
@@ -16,21 +18,15 @@ struct pipe_for {
     struct action {
         Fn fn;
 
-        template <typename Box>
+        template <typename Box, typename Traits = box_traits_for<Box>>
         [[nodiscard]] inline constexpr decltype(auto) operator()(Box&& box) noexcept {
             // static_assert(std::same_as<decltype(box), Boo*&&>);
-            return cpo(std::forward<Box>(box), std::forward<Fn>(fn));
+            return cpo.template operator()<Traits>(std::forward<Box>(box), std::forward<Fn>(fn));
         }
 
-        template <typename Box, typename A>
-            requires(std::same_as<std::remove_cvref_t<A>, action>)
+        template <is_box Box, same_unqualified_as<action> A>
         [[nodiscard]] friend inline constexpr decltype(auto) operator|(Box&& box, A&& a) noexcept {
-            // if constexpr (std::is_pointer_v<std::remove_cvref_t<Box>>) {
-            // return std::forward<A>(a)(box);
-            // } else {
             return std::forward<A>(a)(std::forward<Box>(box));
-            // }
-            // static_assert(std::same_as<decltype(box), Boo*&&>);
         }
     };
 

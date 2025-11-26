@@ -35,11 +35,10 @@ template <typename Fn, typename Box, typename BoxTraits>
 using invoke_result_t = decltype(invoke_result<Fn, Box, BoxTraits>())::type;
 
 struct op_fn {
-    template <typename Box, typename Fn>
+    template <typename Traits, typename Box, typename Fn>
     [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept {
-        using BoxTraits = box_traits_for<Box>;
-        using NewError  = invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(std::forward<Box>(box)), BoxTraits>;
-        using NewBoxTraits = box_traits_for<typename BoxTraits::template rebind_error<NewError>>;
+        using NewError     = invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(std::forward<Box>(box)), Traits>;
+        using NewBoxTraits = box_traits_for<typename Traits::template rebind_error<NewError>>;
 
         // transform_error does not make sense if you don't have error
         return std::forward<Box>(box)
