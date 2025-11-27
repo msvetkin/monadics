@@ -14,7 +14,7 @@ struct beman::monadics::box_traits<Box> {
     using value_type = std::remove_pointer_t<Box>;
 
     template <typename V>
-    using rebind_value = V*;
+    using rebind = V*;
 
     template <typename>
     using rebind_error = Box;

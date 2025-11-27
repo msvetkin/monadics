@@ -616,7 +616,7 @@ struct box_traits_for {
     inline static constexpr auto error     = get_error_fn<Box, Traits>();
 
     inline static constexpr auto lift       = get_lift_fn<Box, Traits, value_type>();
-    inline static constexpr auto lift_error = get_lift_fn<Box, Traits, error_type>();
+    inline static constexpr auto lift_error = get_lift_error_fn<Box, Traits, error_type>();
 
     template <typename Fn, same_template<Box> B>
         requires requires {

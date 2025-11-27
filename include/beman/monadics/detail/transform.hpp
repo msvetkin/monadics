@@ -28,16 +28,16 @@ template <typename Fn, typename Value>
     } || requires { requires std::invocable<Fn, Value>; }
 using invoke_result_t = decltype(invoke_result<Fn, Value>())::type;
 
-template <typename Fn, typename NewBoxTraits>
+template <typename Fn, typename NewTraits>
 struct LiftedFn {
     Fn fn;
 
     [[nodiscard]] inline constexpr decltype(auto) operator()(auto&&... v) const noexcept {
-        if constexpr (std::is_void_v<typename NewBoxTraits::value_type>) {
+        if constexpr (std::is_void_v<typename NewTraits::value_type>) {
             std::forward<Fn>(fn)(std::forward<decltype(v)>(v)...);
-            return NewBoxTraits::lift();
+            return NewTraits::lift();
         } else {
-            return NewBoxTraits::lift(std::forward<Fn>(fn)(std::forward<decltype(v)>(v)...));
+            return NewTraits::lift(std::forward<Fn>(fn)(std::forward<decltype(v)>(v)...));
         }
     }
 };
@@ -48,22 +48,33 @@ concept False = false;
 struct op_fn {
     template <typename Traits, typename Box, typename Fn>
     [[nodiscard]] inline constexpr auto operator()(Box&& box, Fn&& fn) const noexcept {
-        using NewValue     = decltype(Traits::invoke_with_value(std::forward<Fn>(fn), std::forward<Box>(box)));
-        using NewBoxTraits = box_traits_for<typename Traits::template rebind<NewValue>>;
+        using NewValue  = decltype(Traits::invoke_with_value(std::forward<Fn>(fn), std::forward<Box>(box)));
+        using NewTraits = box_traits_for<typename Traits::template rebind<NewValue>>;
 
-        return std::forward<Box>(box)
-             | and_then([f = std::forward<Fn>(fn)](auto&&... v) mutable -> typename NewBoxTraits::box_type {
-                   if constexpr (sizeof...(v) == 1) {
-                       return NewBoxTraits::lift(std::forward<decltype(f)>(f)(std::forward<decltype(v)>(v)...));
-                   } else if constexpr (std::is_void_v<typename NewBoxTraits::value_type>) {
-                       std::forward<decltype(f)>(f)();
-                       return NewBoxTraits::lift();
-                   } else if constexpr (std::is_void_v<typename Traits::value_type>) {
-                       return NewBoxTraits::lift(std::forward<decltype(f)>(f)());
-                   } else {
-                       static_assert(False<Box>, "something went wrong");
-                   }
-               });
+        if (Traits::has_value(box)) {
+            if constexpr (std::is_void_v<typename NewTraits::value_type>) {
+                Traits::invoke_with_value(std::forward<Fn>(fn), std::forward<Box>(box));
+                return NewTraits::lift();
+            } else {
+                return NewTraits::lift(Traits::invoke_with_value(std::forward<Fn>(fn), std::forward<Box>(box)));
+            }
+        }
+
+        return NewTraits::lift_with_error(std::forward<Box>(box));
+
+        // return std::forward<Box>(box)
+        // | and_then([f = std::forward<Fn>(fn)](auto&&... v) mutable -> typename NewTraits::box_type {
+        // if constexpr (sizeof...(v) == 1) {
+        // return NewTraits::lift(std::forward<decltype(f)>(f)(std::forward<decltype(v)>(v)...));
+        // } else if constexpr (std::is_void_v<typename NewTraits::value_type>) {
+        // std::forward<decltype(f)>(f)();
+        // return NewTraits::lift();
+        // } else if constexpr (std::is_void_v<typename Traits::value_type>) {
+        // return NewTraits::lift(std::forward<decltype(f)>(f)());
+        // } else {
+        // static_assert(False<Box>, "something went wrong");
+        // }
+        // });
     }
 };
 
