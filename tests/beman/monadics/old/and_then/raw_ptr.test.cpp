@@ -23,7 +23,7 @@ TEST_CASE("has-box-traits") {
     using Traits = box_traits_for<int*>;
     STATIC_REQUIRE(std::same_as<Traits::value_type, int>);
     STATIC_REQUIRE(std::same_as<Traits::error_type, std::nullptr_t>);
-    STATIC_REQUIRE(std::same_as<Traits::rebind_value<float>, float*>);
+    STATIC_REQUIRE(std::same_as<Traits::rebind<float>, float*>);
     STATIC_REQUIRE(std::same_as<Traits::rebind_error<float>, int*>);
 
     constexpr auto value = []() {

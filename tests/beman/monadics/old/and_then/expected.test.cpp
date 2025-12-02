@@ -14,7 +14,7 @@ TEST_CASE("has-box-traits") {
     using Traits   = box_traits_for<Expected>;
     STATIC_REQUIRE(std::same_as<typename Traits::value_type, void>);
     STATIC_REQUIRE(std::same_as<Traits::error_type, int>);
-    STATIC_REQUIRE(std::same_as<Traits::rebind_value<double>, helpers::expected<double, int>>);
+    STATIC_REQUIRE(std::same_as<Traits::rebind<double>, helpers::expected<double, int>>);
     STATIC_REQUIRE(std::same_as<Traits::rebind_error<double>, helpers::expected<void, double>>);
     STATIC_REQUIRE(std::same_as<decltype(Traits::value(Expected{10})), void>);
     STATIC_REQUIRE(Traits::error(Expected{10}) == 10);

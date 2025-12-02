@@ -7,6 +7,12 @@
 #include <type_traits>
 #include <utility>
 
+#include <beman/monadics/detail/as_pointer.hpp>
+#include <beman/monadics/detail/decomposable.hpp>
+#include <beman/monadics/detail/instance_of.hpp>
+#include <beman/monadics/detail/same_template.hpp>
+#include <beman/monadics/detail/same_unqualified_as.hpp>
+
 namespace beman::monadics {
 
 /*
@@ -345,30 +351,6 @@ struct box_traits {
 namespace detail::impl2 {
 
 template <typename T>
-inline constexpr auto as_pointer = static_cast<std::remove_cvref_t<T>*>(nullptr);
-
-template <typename T, std::size_t N>
-concept decomposable = requires {
-    []<template <typename...> class U, typename... Args>
-        requires(sizeof...(Args) >= N)
-    (U<Args...>*) {}(as_pointer<T>);
-};
-
-template <typename T, template <typename...> class U>
-concept instance_of = requires {
-    requires decomposable<T, 1>;
-    []<typename... Ts>(U<Ts...>*) {}(as_pointer<T>);
-};
-
-template <typename T, typename U>
-concept same_template = requires {
-    requires decomposable<T, 1>;
-    requires decomposable<U, 1>;
-    []<template <typename...> class C, typename... Ts, typename... Us>(C<Ts...>*, C<Us...>*) {}(as_pointer<T>,
-                                                                                                as_pointer<U>);
-};
-
-template <typename T>
 struct meta_extract_value_type;
 
 template <template <typename...> typename T, typename V, typename... Args>
@@ -471,9 +453,6 @@ template <typename Box, typename Traits, typename E>
         { get_rebind_error<Box, Traits, E>() } -> instance_of<std::type_identity>;
     }
 using rebind_error = typename decltype(get_rebind_error<Box, Traits, E>())::type;
-
-template <typename T, typename U>
-concept same_unqualified_as = std::same_as<std::remove_cvref_t<T>, std::remove_cvref_t<U>>;
 
 template <typename Fn, typename Box, typename R>
 concept invocable_r = requires {
@@ -618,11 +597,11 @@ struct box_traits_for {
     inline static constexpr auto lift       = get_lift_fn<Box, Traits, value_type>();
     inline static constexpr auto lift_error = get_lift_error_fn<Box, Traits, error_type>();
 
-    template <typename Fn, same_template<Box> B>
-        requires requires {
-            requires std::is_void_v<value_type>;
-            requires std::invocable<Fn>;
-        } || requires { requires std::invocable<Fn, value_type>; }
+    template <typename Fn, typename B>
+    // requires requires {
+    // requires std::is_void_v<value_type>;
+    // requires std::invocable<Fn>;
+    // } || requires { requires std::invocable<Fn, value_type>; }
     [[nodiscard]] static constexpr decltype(auto) invoke_with_value(Fn&& fn, B&& box) noexcept {
         if constexpr (std::is_void_v<value_type> && std::invocable<Fn>) {
             // should just invoke Traits::value(box);
@@ -632,7 +611,7 @@ struct box_traits_for {
         }
     }
 
-    template <typename Fn, same_template<Box> B>
+    template <typename Fn, typename B>
         requires requires {
             { error(std::declval<Box>()) };
             requires std::invocable<Fn, error_type>;
@@ -645,7 +624,7 @@ struct box_traits_for {
         }
     }
 
-    template <same_template<Box> B>
+    template <typename B>
     [[nodiscard]] static constexpr decltype(auto) lift_with_value(B&& box) noexcept {
         if constexpr (std::is_void_v<value_type>) {
             return lift();
@@ -654,7 +633,7 @@ struct box_traits_for {
         }
     }
 
-    template <same_template<Box> B>
+    template <typename B>
     [[nodiscard]] static constexpr decltype(auto) lift_with_error(B&& box) noexcept {
         if constexpr (requires { error(std::forward<B>(box)); }) {
             return lift_error(error(std::forward<B>(box)));

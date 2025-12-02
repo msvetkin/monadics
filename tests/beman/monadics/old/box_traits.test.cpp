@@ -17,7 +17,7 @@ struct monadics::box_traits<Foo> {
     using error_type = double;
 
     template <typename>
-    using rebind_value = Foo;
+    using rebind = Foo;
 
     template <typename>
     using rebind_error = Foo;

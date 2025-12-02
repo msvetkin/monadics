@@ -13,7 +13,7 @@ struct beman::monadics::box_traits<std::shared_ptr<T>> {
     using error_type = std::nullptr_t;
 
     template <typename V>
-    using rebind_value = std::shared_ptr<V>;
+    using rebind = std::shared_ptr<V>;
 
     template <typename>
     using rebind_error = std::shared_ptr<T>;
@@ -53,7 +53,7 @@ struct beman::monadics::box_traits<Box> {
 error_type is deduced from error fn if error has 0 args.
 value_type is deduced as first template argument.
 rebind_error is deduced as same type if error fn has 0 args.
-rebind_value by default just change first args.
+rebind by default just change first args.
 lift_error does not exist, then ctor is used with error().
 */
 
@@ -64,7 +64,7 @@ struct beman::monadics::box_traits<std::shared_ptr<T>> {
     using error_type = std::nullptr_t;
 
     template <typename V>
-    using rebind_value = std::shared_ptr<V>;
+    using rebind = std::shared_ptr<V>;
 
     template <typename>
     using rebind_error = std::shared_ptr<T>;
@@ -88,7 +88,7 @@ struct beman::monadics::box_traits<Box> {
     using error_type = std::nullptr_t;
 
     template <typename V>
-    using rebind_value = std::shared_ptr<V>;
+    using rebind = std::shared_ptr<V>;
 
     template <typename>
     using rebind_error = std::shared_ptr<T>;

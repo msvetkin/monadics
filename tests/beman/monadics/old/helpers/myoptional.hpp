@@ -23,7 +23,7 @@ struct beman::monadics::box_traits<helpers::myoptional<T>> {
     using error_type = helpers::none;
 
     template <typename V>
-    using rebind_value = helpers::myoptional<V>;
+    using rebind = helpers::myoptional<V>;
 
     template <typename>
     using rebind_error = helpers::myoptional<T>;

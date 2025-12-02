@@ -48,7 +48,7 @@ struct beman::monadics::box_traits<smart_ptr<T>> {
     using error_type = std::nullopt_t;
 
     template <typename V>
-    using rebind_value = smart_ptr<V>;
+    using rebind = smart_ptr<V>;
 
     template <typename>
     using rebind_error = smart_ptr<T>;

@@ -70,22 +70,27 @@ using invoke_result_t = decltype(invoke_result<Fn, Value>())::type;
 
 struct op_fn {
     template <typename Traits, typename Box, typename Fn>
-        requires requires {
-            { invoke_result<Fn, typename Traits::value_type>() } -> detail::impl2::instance_of<std::type_identity>;
-            typename box_traits_for<invoke_result_t<Fn, typename Traits::value_type>>;
-            requires detail::impl2::same_template<Box, invoke_result_t<Fn, typename Traits::value_type>>;
-            requires std::same_as<
-                typename Traits::error_type,
-                typename box_traits_for<invoke_result_t<Fn, typename Traits::value_type>>::error_type>;
-            // requires std::invocable<Fn, typename Traits::value_type>; // cater for value_type void
-            /*
-            requires std::invoke_result_t<Fn, typename Traits::value_type>;
-            requires same_template<
-               Box,
-               std::invoke_result_t<Fn, typename Traits::value_type
-            >
-            */
-        }
+    // requires requires {
+    // { invoke_result<Fn, typename Traits::value_type>() } -> instance_of<std::type_identity>;
+    // typename box_traits_for<invoke_result_t<Fn, typename Traits::value_type>>;
+    // // requires same_unqualified_as<
+    // // Box,
+    // // typename box_traits_for<invoke_result_t<Fn, typename Traits::value_type>>::template rebind<typename
+    // Traits::value_type>>
+    // // >;
+    // // requires same_template<Box, invoke_result_t<Fn, typename Traits::value_type>>;
+    // requires std::same_as<
+    // typename Traits::error_type,
+    // typename box_traits_for<invoke_result_t<Fn, typename Traits::value_type>>::error_type>;
+    // // requires std::invocable<Fn, typename Traits::value_type>; // cater for value_type void
+    // [>
+    // requires std::invoke_result_t<Fn, typename Traits::value_type>;
+    // requires same_template<
+    // Box,
+    // std::invoke_result_t<Fn, typename Traits::value_type
+    // >
+    // */
+    // }
     [[nodiscard]] inline constexpr decltype(auto) operator()(Box&& box, Fn&& fn) const noexcept {
         using NewBox =
             invoke_result_t<decltype(std::forward<Fn>(fn)), decltype(Traits::value(std::forward<Box>(box)))>;

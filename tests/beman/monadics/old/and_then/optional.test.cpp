@@ -37,7 +37,7 @@ TEST_CASE("has-box-traits") {
     using Traits = box_traits_for<std::optional<int>>;
     STATIC_REQUIRE(std::same_as<Traits::value_type, int>);
     STATIC_REQUIRE(std::same_as<Traits::error_type, std::nullopt_t>);
-    STATIC_REQUIRE(std::same_as<Traits::rebind_value<float>, std::optional<float>>);
+    STATIC_REQUIRE(std::same_as<Traits::rebind<float>, std::optional<float>>);
     STATIC_REQUIRE(std::same_as<Traits::rebind_error<float>, std::optional<int>>);
     STATIC_REQUIRE(Traits::value(std::optional{5}) == 5);
     STATIC_REQUIRE(std::same_as<decltype(Traits::error()), std::nullopt_t>);

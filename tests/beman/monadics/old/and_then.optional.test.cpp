@@ -50,7 +50,7 @@ struct beman::monadics::box_traits<std::optional<T>> {
     using error_type = std::nullopt_t;
 
     template <typename V>
-    using rebind_value = std::optional<V>;
+    using rebind = std::optional<V>;
 
     template <typename>
     using rebind_error = std::optional<T>;

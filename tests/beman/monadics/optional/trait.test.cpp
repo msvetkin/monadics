@@ -5,6 +5,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <concepts>
+#include <optional>
 #include <type_traits>
 
 namespace beman::monadics::tests {
@@ -19,7 +20,7 @@ TEST_CASE("box-trait-for") {
     STATIC_REQUIRE(Traits::value(std::optional{5}) == 5);
     STATIC_REQUIRE(Traits::has_value(std::optional{5}));
     STATIC_REQUIRE(Traits::has_value(std::optional<int>{}) == false);
-    // STATIC_REQUIRE(std::same_as<decltype(Traits::error()), std::nullopt_t>);
+    STATIC_REQUIRE(std::same_as<decltype(Traits::error()), std::nullopt_t>);
     STATIC_REQUIRE(Traits::lift(10) == std::optional{10});
     // STATIC_REQUIRE(Traits::lift_error() == std::optional<int>{});
 }
