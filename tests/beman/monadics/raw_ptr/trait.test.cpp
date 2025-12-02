@@ -9,6 +9,11 @@
 
 namespace beman::monadics::tests {
 
+template <typename T>
+concept hm = requires {
+    { box_traits<int*>::lift(std::declval<T>()) };
+};
+
 TEST_CASE("box-trait-for") {
     using Traits = box_traits_for<int*>;
     STATIC_REQUIRE(std::same_as<Traits::value_type, int>);
@@ -32,6 +37,9 @@ TEST_CASE("box-trait-for") {
     STATIC_REQUIRE(noValue == false);
 
     STATIC_REQUIRE(Traits::error() == nullptr);
+
+    // STATIC_REQUIRE(hm<int>);
+
     // STATIC_REQUIRE(Traits::lift_error() == static_cast<int*>(nullptr));
 
     // constexpr auto liftValue = []() {

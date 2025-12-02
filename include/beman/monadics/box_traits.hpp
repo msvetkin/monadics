@@ -514,6 +514,9 @@ template <typename Box, typename Traits, typename T>
 consteval auto get_lift_fn() noexcept {
     if constexpr (requires { Traits::lift(std::declval<T>()); }) {
         return [](auto&& v) { return Traits::lift(std::forward<decltype(v)>(v)); };
+    } else if constexpr (requires { &Traits::lift; }) {
+        // return &Traits::lift;
+        return [](auto&& v) { return Traits::lift(std::forward<decltype(v)>(v)); };
     } else if constexpr (std::is_void_v<T>) {
         return []() { return Box{}; };
     } else if constexpr (requires { std::constructible_from<Box, T>; }) {
