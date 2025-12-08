@@ -6,9 +6,13 @@
 #include <concepts>
 #include <type_traits>
 #include <utility>
+#include <functional>
 
 #include <beman/monadics/detail/as_pointer.hpp>
 #include <beman/monadics/detail/decomposable.hpp>
+#include <beman/monadics/detail/meta_extract_value_type.hpp>
+#include <beman/monadics/detail/meta_rebind_value.hpp>
+#include <beman/monadics/detail/meta_rebind_error.hpp>
 #include <beman/monadics/detail/instance_of.hpp>
 #include <beman/monadics/detail/same_template.hpp>
 #include <beman/monadics/detail/same_unqualified_as.hpp>
@@ -350,30 +354,25 @@ struct box_traits {
 
 namespace detail::impl2 {
 
-template <typename T>
-struct meta_extract_value_type;
-
-template <template <typename...> typename T, typename V, typename... Args>
-struct meta_extract_value_type<T<V, Args...>> {
-    using type = V;
-};
-
 template <typename Box, typename Trait>
 [[nodiscard]] consteval auto get_value_type() noexcept {
     if constexpr (requires { typename Trait::value_type; }) {
         return std::type_identity<typename Trait::value_type>{};
     } else if constexpr (requires { typename Box::value_type; }) {
         return std::type_identity<typename Box::value_type>{};
-    } else if constexpr (decomposable<Box, 1>) {
-        return std::type_identity<typename meta_extract_value_type<Box>::type>{};
+    } else if constexpr (requires { meta_extract_value_type<Box>(); }) {
+        return meta_extract_value_type<Box>();
     }
 }
 
-template <typename Box, typename Trait = box_traits<Box>>
-    requires requires {
-        { get_value_type<Box, Trait>() } -> instance_of<std::type_identity>;
-    }
-using value_type = typename decltype(get_value_type<Box, Trait>())::type;
+template <typename Box, typename Traits>
+concept has_value_type = requires {
+    { get_value_type<Box, Traits>() } -> instance_of<std::type_identity>;
+};
+
+template <typename Box, typename Traits = box_traits<Box>>
+    requires has_value_type<Box, Traits>
+using value_type_t = typename decltype(get_value_type<Box, Traits>())::type;
 
 template <typename Box, typename Trait>
 consteval auto get_error_type() noexcept {
@@ -386,20 +385,14 @@ consteval auto get_error_type() noexcept {
     }
 }
 
-template <typename Box, typename Trait>
-    requires requires {
-        { get_value_type<Box, Trait>() } -> instance_of<std::type_identity>;
-    }
-using error_type = typename decltype(get_error_type<Box, Trait>())::type;
-
-template <template <typename...> class Box, typename... Args>
-struct meta_rebind {
-    template <typename T>
-    using rebind = Box<T, Args...>;
+template <typename Box, typename Traits>
+concept has_error_type = requires {
+    { get_error_type<Box, Traits>() } -> instance_of<std::type_identity>;
 };
 
-template <template <typename...> class Box, typename T, typename... Args>
-auto get_meta_rebind(Box<T, Args...>*) -> meta_rebind<Box, Args...>;
+template <typename Box, typename Traits>
+    requires has_error_type<Box, Traits>
+using error_type_t = typename decltype(get_error_type<Box, Traits>())::type;
 
 template <typename Box, typename Traits, typename T>
 consteval auto get_rebind() noexcept {
@@ -407,25 +400,19 @@ consteval auto get_rebind() noexcept {
         return std::type_identity<Traits>{};
     } else if constexpr (requires { typename Box::template rebind<T>; }) {
         return std::type_identity<Box>{};
-    } else if constexpr (requires { decomposable<Box, 1>; }) {
-        return std::type_identity<decltype(get_meta_rebind(as_pointer<Box>))>{};
+    } else if constexpr (requires { get_meta_rebind<Box>(); }) {
+        return get_meta_rebind<Box>();
     }
 }
 
 template <typename Box, typename Traits, typename T>
-    requires requires {
-        { get_rebind<Box, Traits, T>() } -> instance_of<std::type_identity>;
-    }
-using rebind = typename decltype(get_rebind<Box, Traits, T>())::type;
-
-template <template <typename...> class Box, typename T, typename... Args>
-struct meta_rebind_error {
-    template <typename E>
-    using rebind_error = Box<T, E, Args...>;
+concept has_rebind = requires {
+    { get_rebind<Box, Traits, T>() } -> instance_of<std::type_identity>;
 };
 
-template <template <typename...> class Box, typename T, typename E, typename... Args>
-auto get_meta_rebind_error(Box<T, E, Args...>*) -> meta_rebind_error<Box, T, Args...>;
+template <typename Box, typename Traits, typename T>
+    requires has_rebind<Box, Traits, T>
+using rebind = typename decltype(get_rebind<Box, Traits, T>())::type;
 
 template <typename Box>
 struct no_rebind_error {
@@ -433,7 +420,7 @@ struct no_rebind_error {
     using rebind_error = Box;
 };
 
-template <typename Box, typename Traits, typename E = error_type<Box, Traits>>
+template <typename Box, typename Traits, typename E>
 consteval auto get_rebind_error() noexcept {
     if constexpr (requires { typename Traits::template rebind_error<E>; }) {
         return std::type_identity<Traits>{};
@@ -441,17 +428,20 @@ consteval auto get_rebind_error() noexcept {
         return std::type_identity<Box>{};
     } else if constexpr (requires { Traits::error(); }) {
         return std::type_identity<no_rebind_error<Box>>{};
-    } else if constexpr (requires { decomposable<Box, 2>; }) {
-        return std::type_identity<decltype(get_meta_rebind_error(as_pointer<Box>))>{};
+    } else if constexpr (requires { get_meta_rebind_error<Box>(); }) {
+        return get_meta_rebind_error<Box>();
     } else {
         // static_assert(False<Box>, "I was not able to identify rebind alias, pleases read the docs");
     }
 }
 
 template <typename Box, typename Traits, typename E>
-    requires requires {
-        { get_rebind_error<Box, Traits, E>() } -> instance_of<std::type_identity>;
-    }
+concept has_rebind_error = requires {
+    { get_rebind_error<Box, Traits, E>() } -> instance_of<std::type_identity>;
+};
+
+template <typename Box, typename Traits, typename E>
+    requires has_rebind_error<Box, Traits, E>
 using rebind_error = typename decltype(get_rebind_error<Box, Traits, E>())::type;
 
 template <typename Fn, typename Box, typename R>
@@ -471,7 +461,7 @@ consteval auto get_has_value_fn() noexcept {
 
 template <typename Box, typename Traits>
     requires requires {
-        { get_has_value<Box, Traits>() } -> invocable_r<Box, bool>;
+        { get_has_value_fn<Box, Traits>() } -> invocable_r<Box, bool>;
     }
 inline constexpr auto has_value_fn = get_has_value_fn<Box, Traits>();
 
@@ -519,7 +509,7 @@ consteval auto get_lift_fn() noexcept {
         return [](auto&& v) { return Traits::lift(std::forward<decltype(v)>(v)); };
     } else if constexpr (std::is_void_v<T>) {
         return []() { return Box{}; };
-    } else if constexpr (requires { std::constructible_from<Box, T>; }) {
+    } else if constexpr (std::constructible_from<Box, T>) {
         return [](auto&& v) { return Box{std::forward<decltype(v)>(v)}; };
     }
 };
@@ -528,7 +518,7 @@ template <typename Box, typename Traits, typename E>
 consteval auto get_lift_error_fn() noexcept {
     if constexpr (requires { Traits::lift_error(std::declval<E>()); }) {
         return [](auto&& e) { return Traits::lift_error(std::forward<decltype(e)>(e)); };
-    } else if constexpr (requires { std::constructible_from<Box, E>; }) {
+    } else if constexpr (std::constructible_from<Box, E>) {
         return [](auto&& e) { return Box{std::forward<decltype(e)>(e)}; };
     }
 };
@@ -552,21 +542,21 @@ template <typename Traits, typename Fn, typename Box>
 
 template <typename Box, typename Traits = box_traits<Box>>
 concept is_box = requires {
-    { get_value_type<Box, Traits>() } -> instance_of<std::type_identity>;
-    // typename value_type<Box, Traits>;
-    typename error_type<Box, Traits>;
+    requires has_value_type<Box, Traits>;
+    requires has_error_type<Box, Traits>;
+    requires has_rebind<Box, Traits, value_type_t<Box, Traits>>;
+    requires has_rebind_error<Box, Traits, error_type_t<Box, Traits>>;
 
-    typename rebind<Box, Traits, value_type<Box, Traits>>;
-    typename rebind_error<Box, Traits, error_type<Box, Traits>>;
+    // typename rebind_error<Box, Traits, error_type_t<Box, Traits>>;
 
     { get_has_value_fn<Box, Traits>() } -> invocable_r<Box, bool>;
-    { get_value_fn<Box, Traits>() } -> invocable_r<Box, value_type<Box, Traits>>;
+    { get_value_fn<Box, Traits>() } -> invocable_r<Box, value_type_t<Box, Traits>>;
     { get_error_fn<Box, Traits>() };
-    // { get_error_fn<Box, Traits>() } -> invocable_r<Box, error_type<Box, Traits>>;
+    // { get_error_fn<Box, Traits>() } -> invocable_r<Box, error_type_t<Box, Traits>>;
 
-    { get_lift_fn<Box, Traits, value_type<Box, Traits>>() };
+    { get_lift_fn<Box, Traits, value_type_t<Box, Traits>>() };
     // { get_lift_fn<Box, Traits, value_type<Box, Traits>>() } -> invocable_r<value_type<Box, Traits>, Box>;
-    { get_lift_error_fn<Box, Traits, error_type<Box, Traits>>() } -> invocable_r<error_type<Box, Traits>, Box>;
+    { get_lift_error_fn<Box, Traits, error_type_t<Box, Traits>>() } -> invocable_r<error_type_t<Box, Traits>, Box>;
     // { get_lift_error_fn<Box, Traits, error_type<Box, Traits>>() } -> invocable_r<error_type<Box, Traits>, Box>;
 };
 
@@ -584,8 +574,8 @@ namespace detail::impl2 {
 template <typename Box, typename Traits = box_traits<Box>>
 struct box_traits_for {
     using box_type   = Box;
-    using value_type = value_type<Box, Traits>;
-    using error_type = error_type<Box, Traits>;
+    using value_type = value_type_t<Box, Traits>;
+    using error_type = error_type_t<Box, Traits>;
 
     template <typename T>
     using rebind = rebind<Box, Traits, value_type>::template rebind<T>;
