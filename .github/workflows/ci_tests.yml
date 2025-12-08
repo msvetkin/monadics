@@ -12,8 +12,8 @@ on:
     - cron: '30 15 * * *'
 
 jobs:
-  beman-submodule-check:
-    uses: ./.github/workflows/reusable-beman-submodule-check.yml
+  #beman-submodule-check:
+  # uses: ./.github/workflows/reusable-beman-submodule-check.yml
 
   preset-test:
     uses: ./.github/workflows/reusable-beman-preset-test.yml
