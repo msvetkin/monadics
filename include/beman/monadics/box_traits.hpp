@@ -347,12 +347,7 @@ struct box_traits_for {
 
 */
 
-template <typename T>
-struct box_traits {
-    using box_type = T;
-};
-
-namespace detail::impl2 {
+namespace detail::_box_traits {
 
 template <typename Box, typename Trait>
 [[nodiscard]] consteval auto deduce_value_type() noexcept {
@@ -370,7 +365,7 @@ concept has_value_type = requires {
     { deduce_value_type<Box, Traits>() } -> instance_of<std::type_identity>;
 };
 
-template <typename Box, typename Traits = box_traits<Box>>
+template <typename Box, typename Traits>
     requires has_value_type<Box, Traits>
 using value_type_t = typename decltype(deduce_value_type<Box, Traits>())::type;
 
@@ -574,7 +569,7 @@ template <typename Box, typename Traits, typename E>
     requires has_lift_error_fn<Box, Traits, E>
 inline constexpr auto lift_error_fn = deduce_lift_error_fn<Box, Traits, E>();
 
-template <typename Box, typename Traits = box_traits<Box>>
+template <typename Box, typename Traits>
 concept is_box = requires {
     requires has_value_type<Box, Traits>;
     requires has_error_type<Box, Traits>;
@@ -589,19 +584,8 @@ concept is_box = requires {
     requires has_lift_error_fn<Box, Traits, error_type_t<Box, Traits>>;
 };
 
-} // namespace detail::impl2
-
-template <typename Box>
-concept is_box = requires {
-    typename box_traits<Box>;
-    requires detail::impl2::is_box<std::remove_cvref_t<Box>, // maybe should preserve qualifiers?
-                                   box_traits<std::remove_cvref_t<Box>>>;
-};
-
-namespace detail::impl2 {
-
-template <typename Box, typename Traits = box_traits<Box>>
-struct box_traits_for {
+template <typename Box, typename Traits>
+struct deduce_traits {
     using box_type   = Box;
     using value_type = value_type_t<Box, Traits>;
     using error_type = error_type_t<Box, Traits>;
@@ -667,10 +651,22 @@ struct box_traits_for {
     }
 };
 
-} // namespace detail::impl2
+} // namespace detail::_box_traits
+
+template <typename T>
+struct box_traits {
+    using box_type = T;
+};
+
+template <typename Box>
+concept is_box = requires {
+    typename box_traits<std::remove_cvref_t<Box>>;
+    requires detail::_box_traits::is_box<std::remove_cvref_t<Box>, // maybe should preserve qualifiers?
+                                         box_traits<std::remove_cvref_t<Box>>>;
+};
 
 template <is_box T>
-using box_traits_for = detail::impl2::box_traits_for<std::remove_cvref_t<T>>;
+using box_traits_for = detail::_box_traits::deduce_traits<std::remove_cvref_t<T>, box_traits<std::remove_cvref_t<T>>>;
 
 } // namespace beman::monadics
 
