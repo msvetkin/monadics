@@ -11,18 +11,17 @@
 namespace beman::monadics::tests {
 
 TEST_CASE("box-trait-for") {
-    // STATIC_REQUIRE(has_box_traits2<std::optional<int>>);
     using Traits = box_traits_for<std::optional<int>>;
-    // STATIC_REQUIRE(std::same_as<Traits::value_type, int>);
-    // STATIC_REQUIRE(std::same_as<Traits::error_type, std::nullopt_t>);
-    // STATIC_REQUIRE(std::same_as<Traits::rebind<float>, std::optional<float>>);
-    // STATIC_REQUIRE(std::same_as<Traits::rebind_error<float>, std::optional<int>>);
-    // STATIC_REQUIRE(Traits::value(std::optional{5}) == 5);
-    // STATIC_REQUIRE(Traits::has_value(std::optional{5}));
-    // STATIC_REQUIRE(Traits::has_value(std::optional<int>{}) == false);
-    // STATIC_REQUIRE(std::same_as<decltype(Traits::error()), std::nullopt_t>);
-    // STATIC_REQUIRE(Traits::lift(10) == std::optional{10});
-    // STATIC_REQUIRE(Traits::lift_error() == std::optional<int>{});
+    STATIC_REQUIRE(std::same_as<Traits::value_type, int>);
+    STATIC_REQUIRE(std::same_as<Traits::error_type, std::nullopt_t>);
+    STATIC_REQUIRE(std::same_as<Traits::rebind<float>, std::optional<float>>);
+    STATIC_REQUIRE(std::same_as<Traits::rebind_error<float>, std::optional<int>>);
+    STATIC_REQUIRE(Traits::value(std::optional{5}) == 5);
+    STATIC_REQUIRE(Traits::has_value(std::optional{5}));
+    STATIC_REQUIRE(Traits::has_value(std::optional<int>{}) == false);
+    STATIC_REQUIRE(std::same_as<decltype(Traits::error()), std::nullopt_t>);
+    STATIC_REQUIRE(Traits::lift(10) == std::optional{10});
+    STATIC_REQUIRE(Traits::lift_error(Traits::error()) == std::optional<int>{});
 }
 
 /*
