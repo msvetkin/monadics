@@ -530,7 +530,6 @@ consteval auto deduce_lift_fn() noexcept {
         return []() { return Box{}; };
     } else if constexpr (std::constructible_from<Box, T>) {
         return [](auto&& v) { return Box{std::forward<decltype(v)>(v)}; };
-        // return [](auto&& v) { return Box{std::forward<decltype(v)>(v)}; };
     }
 };
 
@@ -538,7 +537,6 @@ template <typename Box, typename Traits, typename T>
 concept has_lift_fn = requires {
     requires requires {
         { deduce_lift_fn<Box, Traits, T>() } -> std::invocable<T&>; // T& for raw_ptr value
-        // { deduce_lift_fn<Box, Traits, T>()(std::declval<T>()) };
         // { deduce_lift_fn<Box, Traits, T>()(std::declval<T>()) } -> same_unqualified_as<Box>;
         // { deduce_lift_fn<Box, Traits, T>()(std::declval<T>()) } -> same_unqualified_as<Box>;
     } || requires {
