@@ -4,7 +4,13 @@ find_package(Catch2 REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-set(tests optional raw_ptr shared_ptr expected)
+set(tests
+    optional
+    raw_ptr
+    shared_ptr
+    enum
+    expected
+)
 
 set(test_global_target "beman.monadics.tests")
 add_custom_target(${test_global_target})
